@@ -21,8 +21,8 @@ const Header = () => {
     { name: 'Início', path: '/' },
     { name: 'Imóveis', path: '/imoveis' },
     { name: 'Sobre', path: '/#sobre' },
-    { name: 'Blog', path: '/blog' },
-    { name: 'Contato', path: '/contato' },
+    // { name: 'Blog', path: '/blog' },
+    // { name: 'Contato', path: '/contato' },
   ];
 
   const isHomePage = location.pathname === '/';
