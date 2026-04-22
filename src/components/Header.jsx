@@ -1,0 +1,123 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, MessageCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../utils/cn';
+
+const Header = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const navLinks = [
+    { name: 'Início', path: '/' },
+    { name: 'Imóveis', path: '/imoveis' },
+    { name: 'Sobre', path: '/#sobre' },
+    { name: 'Blog', path: '/blog' },
+    { name: 'Contato', path: '/contato' },
+  ];
+
+  const isHomePage = location.pathname === '/';
+
+  return (
+    <header
+      className={cn(
+        "fixed top-0 left-0 w-full z-40 transition-all duration-500",
+        (!isHomePage || isScrolled) ? "bg-primary py-3 shadow-lg" : "bg-transparent py-6"
+      )}
+    >
+      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2">
+          <div className="text-secondary font-serif text-2xl font-bold tracking-tighter">
+            ERNANY <span className="text-white font-light">VITORINO</span>
+          </div>
+        </Link>
+
+        {/* Desktop Nav */}
+        <nav className="hidden lg:flex items-center gap-8">
+          {navLinks.map((link) => (
+            <Link
+              key={link.name}
+              to={link.path}
+              className={cn(
+                "text-sm font-medium uppercase tracking-widest hover:text-secondary transition-colors",
+                location.pathname === link.path ? "text-secondary" : "text-white"
+              )}
+            >
+              {link.name}
+            </Link>
+          ))}
+          <a
+            href="https://wa.me/5527999999999"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-secondary hover:bg-opacity-90 text-primary px-6 py-2.5 rounded-full font-bold text-sm transition-all flex items-center gap-2"
+          >
+            <MessageCircle size={18} />
+            WHATSAPP
+          </a>
+        </nav>
+
+        {/* Mobile Toggle */}
+        <button
+          className="lg:hidden text-white p-2"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 bg-primary z-50 lg:hidden flex flex-col p-8"
+          >
+            <div className="flex justify-between items-center mb-12">
+              <div className="text-secondary font-serif text-2xl font-bold">
+                ERNANY <span className="text-white font-light">VITORINO</span>
+              </div>
+              <button onClick={() => setIsOpen(false)} className="text-white">
+                <X size={32} />
+              </button>
+            </div>
+            
+            <nav className="flex flex-col gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  onClick={() => setIsOpen(false)}
+                  className="text-2xl font-serif text-white hover:text-secondary transition-colors"
+                >
+                  {link.name}
+                </Link>
+              ))}
+              <a
+                href="https://wa.me/5527999999999"
+                className="mt-6 bg-secondary text-primary text-center py-4 rounded-xl font-bold text-lg"
+              >
+                Falar pelo WhatsApp
+              </a>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+};
+
+export default Header;
