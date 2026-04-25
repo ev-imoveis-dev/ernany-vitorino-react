@@ -190,7 +190,7 @@ export default function PropertyDetail() {
             )}
 
             {/* Corretor */}
-            {corretor && (
+            {/* {corretor && (
               <div className="bg-light rounded-2xl p-6 flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-secondary shrink-0">
                   <img
@@ -206,7 +206,7 @@ export default function PropertyDetail() {
                   <p className="text-lg font-serif font-bold text-primary">{corretor}</p>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Sidebar */}
@@ -217,13 +217,13 @@ export default function PropertyDetail() {
 
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-secondary p-1 bg-white shadow-lg">
+                    {/* <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-secondary p-1 bg-white shadow-lg">
                       <img
                         src={ernanyImg}
                         alt="Ernany Vitorino"
                         className="w-full h-full object-cover rounded-full"
                       />
-                    </div>
+                    </div> */}
                     <div>
                       <h4 className="font-serif text-xl font-bold">Ernany Vitorino</h4>
                       <span className="text-secondary text-sm font-medium">Corretor Responsável</span>
