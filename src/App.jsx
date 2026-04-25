@@ -9,7 +9,10 @@ import Admin from './pages/Admin'
 import Login from './pages/Login'
 import CadastroCorretor from './pages/CadastroCorretor'
 import EsqueceuSenha from './pages/EsqueceuSenha'  
-import TrocarSenha from './pages/TrocarSenha'        
+import TrocarSenha from './pages/TrocarSenha'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminImoveis from './pages/AdminImoveis'
+import AdminConfiguracoes from './pages/AdminConfiguracoes'        
 
 function App() {
   return (
@@ -20,9 +23,12 @@ function App() {
           <Route path="imoveis" element={<PropertyList />} />
           <Route path="imoveis/:id" element={<PropertyDetail />} />
           <Route path="contato" element={<Contact />} />
-          <Route path="admin" element={<Admin />} />
+          <Route path="admin" element={<AdminDashboard />} /> // Painel Admin
+          <Route path="admin/imoveis" element={<AdminImoveis />} /> // Listagem de Imóveis Admin
+          <Route path="admin/cadastrar" element={<Admin />} /> // Cadastro de Imóvel Admin
+          <Route path="admin/configuracoes" element={<AdminConfiguracoes />} /> // Informações do Site Admin
           <Route path="login" element={<Login />} />
-          <Route path="cadastro-corretor" element={<CadastroCorretor />} />
+          <Route path="cadastro-corretor" element={<CadastroCorretor />} /> // Cadastro de Corretor Admin
           <Route path="esqueceu-senha" element={<EsqueceuSenha />} />
           <Route path="trocar-senha" element={<TrocarSenha />} /> 
         </Route>

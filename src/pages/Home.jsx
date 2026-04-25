@@ -5,6 +5,7 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import PropertyCard from '../components/PropertyCard'
 import { getImoveis } from '../services/imovelService'
 import ernanyImg from '../assets/ernany.png'
+import SearchBar from '../components/SearchBar'
 
 const Home = () => {
   const [destaques, setDestaques] = useState([])
@@ -12,7 +13,7 @@ const Home = () => {
   useEffect(() => {
     getImoveis()
       .then(data => setDestaques(data.slice(0, 3)))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   return (
@@ -47,7 +48,15 @@ const Home = () => {
               Experiência, segurança e sofisticação em cada detalhe.
             </p>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}>
+            <SearchBar />
+          </motion.div>
         </div>
+
       </section>
 
       {/* Imóveis em Destaque */}

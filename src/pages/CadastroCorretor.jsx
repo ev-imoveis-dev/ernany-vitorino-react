@@ -7,8 +7,8 @@ const CadastroCorretor = () => {
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
-    senha: '',
-    confirmarSenha: ''
+    senha: '', // Adicionar Função de Gerar senha temporária
+    confirmarSenha: '' 
   });
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
@@ -17,11 +17,11 @@ const CadastroCorretor = () => {
   const [carregando, setCarregando] = useState(false);
 
   // Verifica se há admin logado
-  const adminLogado = JSON.parse(localStorage.getItem('corretor_logado') || 'null');
-  if (!adminLogado) {
-    navigate('/login');
-    return null;
-  }
+  // const adminLogado = JSON.parse(localStorage.getItem('corretor_logado') || 'null');
+  // if (!adminLogado) {
+  //   navigate('/login');
+  //   return null;
+  // }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,7 +49,7 @@ const CadastroCorretor = () => {
       // await cadastrarCorretor(formData)
 
       setSucesso(true);
-      setFormData({ nome: '', email: '', senha: '', confirmarSenha: '' });
+      setFormData({ nome: '', email: '', senha: '', confirmarSenha: '' }); 
     } catch {
       setErro('Erro ao cadastrar corretor. Tente novamente.');
     } finally {
