@@ -1,27 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
+import { Mail, User, Phone } from 'lucide-react';
 
 const CadastroCorretor = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
-    senha: '', // Adicionar Função de Gerar senha temporária
-    confirmarSenha: '' 
+    celular: ''
   });
-  const [mostrarSenha, setMostrarSenha] = useState(false);
-  const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState(false);
   const [carregando, setCarregando] = useState(false);
-
-  // Verifica se há admin logado
-  // const adminLogado = JSON.parse(localStorage.getItem('corretor_logado') || 'null');
-  // if (!adminLogado) {
-  //   navigate('/login');
-  //   return null;
-  // }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,17 +21,6 @@ const CadastroCorretor = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro('');
-
-    if (formData.senha !== formData.confirmarSenha) {
-      setErro('As senhas não coincidem.');
-      return;
-    }
-
-    if (formData.senha.length < 6) {
-      setErro('A senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
-
     setCarregando(true);
 
     try {
@@ -49,7 +28,7 @@ const CadastroCorretor = () => {
       // await cadastrarCorretor(formData)
 
       setSucesso(true);
-      setFormData({ nome: '', email: '', senha: '', confirmarSenha: '' }); 
+      setFormData({ nome: '', email: '', celular: '' });
     } catch {
       setErro('Erro ao cadastrar corretor. Tente novamente.');
     } finally {
@@ -64,7 +43,7 @@ const CadastroCorretor = () => {
           <span className="text-secondary font-bold uppercase tracking-widest text-sm mb-4 block">Painel Admin</span>
           <h1 className="text-4xl md:text-6xl font-serif text-primary mb-6">Cadastrar <br /> Corretor</h1>
           <p className="text-gray-500 text-lg">
-            Adicione um novo corretor para acessar o painel de cadastro de imóveis.
+            Adicione um novo corretor. Uma senha temporária será gerada automaticamente.
           </p>
         </div>
 
@@ -74,7 +53,7 @@ const CadastroCorretor = () => {
 
             {sucesso && (
               <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl p-4 mb-6 text-sm font-medium">
-                Corretor cadastrado com sucesso!
+                Corretor cadastrado com sucesso! Uma senha temporária foi gerada e enviada.
               </div>
             )}
 
@@ -85,6 +64,7 @@ const CadastroCorretor = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
+
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Nome Completo</label>
                 <div className="relative">
@@ -118,49 +98,25 @@ const CadastroCorretor = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Senha</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Celular</label>
                 <div className="relative">
-                  <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                  <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
                   <input
-                    type={mostrarSenha ? 'text' : 'password'}
-                    name="senha"
-                    value={formData.senha}
+                    type="tel"
+                    name="celular"
+                    value={formData.celular}
                     onChange={handleChange}
-                    className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-12 py-4 focus:outline-none focus:border-secondary transition-colors"
-                    placeholder="Mínimo 6 caracteres"
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-4 focus:outline-none focus:border-secondary transition-colors"
+                    placeholder="(27) 99999-9999"
                     required
                   />
-                  <button
-                    type="button"
-                    onClick={() => setMostrarSenha(!mostrarSenha)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
-                  >
-                    {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Confirmar Senha</label>
-                <div className="relative">
-                  <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
-                  <input
-                    type={mostrarConfirmar ? 'text' : 'password'}
-                    name="confirmarSenha"
-                    value={formData.confirmarSenha}
-                    onChange={handleChange}
-                    className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-12 py-4 focus:outline-none focus:border-secondary transition-colors"
-                    placeholder="Repita a senha"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setMostrarConfirmar(!mostrarConfirmar)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
-                  >
-                    {mostrarConfirmar ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                <p className="text-sm text-blue-500">
+                  Uma senha temporária será gerada automaticamente pela API e o corretor deverá alterá-la no primeiro acesso.
+                </p>
               </div>
 
               <button
@@ -176,8 +132,9 @@ const CadastroCorretor = () => {
                 onClick={() => navigate('/admin')}
                 className="w-full border border-gray-200 text-gray-500 font-bold py-4 rounded-xl hover:bg-light transition-colors uppercase tracking-widest text-sm"
               >
-                Voltar ao Admin
+                Voltar ao Dashboard
               </button>
+
             </form>
           </div>
         </div>

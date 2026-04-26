@@ -1,11 +1,9 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createImovel } from '../services/imovelService'
-import { encerrarSessao } from '../services/authService'
-import { useAuth } from '../hooks/useAuth'
 import {
   BedDouble, Bath, Square, Car, User, MapPin,
-  Home, ArrowLeft, X, Image, Link, LogOut
+  Home, ArrowLeft, X, Image, LogOut
 } from 'lucide-react'
 
 const camposIniciais = {
@@ -26,19 +24,13 @@ const camposIniciais = {
 
 export default function Admin() {
   const navigate = useNavigate()
-  const sessao = useAuth() // ← protege a rota automaticamente
 
-  const [form, setForm] = useState({
-    ...camposIniciais,
-    corretor: sessao?.usuario?.nome ?? ''
-  })
+  const [form, setForm] = useState(camposIniciais)
   const [modoFoto, setModoFoto] = useState('url')
   const [previewFoto, setPreviewFoto] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState('')
-
-  if (!sessao) return null
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -58,15 +50,10 @@ export default function Admin() {
   }
 
   function handleLimpar() {
-    setForm({ ...camposIniciais, corretor: sessao?.usuario?.nome ?? '' })
+    setForm(camposIniciais)
     setPreviewFoto('')
     setSucesso(false)
     setErro('')
-  }
-
-  function handleLogout() {
-    encerrarSessao()
-    navigate('/login')
   }
 
   async function handleSubmit(e) {
@@ -85,7 +72,7 @@ export default function Admin() {
         vagas: parseInt(form.vagas),
       })
       setSucesso(true)
-      setForm({ ...camposIniciais, corretor: sessao?.usuario?.nome ?? '' })
+      setForm(camposIniciais)
       setPreviewFoto('')
     } catch (err) {
       setErro(err.message || 'Erro ao cadastrar imóvel. Tente novamente.')
@@ -100,16 +87,10 @@ export default function Admin() {
 
         <div className="flex justify-between items-center mb-6">
           <button
-            onClick={() => navigate('/imoveis')}
+            onClick={() => navigate('/admin')}
             className="flex items-center gap-2 text-primary font-medium hover:opacity-70 transition-opacity"
           >
-            <ArrowLeft size={18} /> Voltar para o site
-          </button>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-red-500 font-medium hover:opacity-70 transition-opacity"
-          >
-            <LogOut size={18} /> Sair
+            <ArrowLeft size={18} /> Voltar ao Dashboard
           </button>
         </div>
 
@@ -147,17 +128,6 @@ export default function Admin() {
 
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Imagem do imóvel</label>
-              {/* <div className="flex gap-2 mb-3">
-                <button type="button" onClick={() => setModoFoto('url')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${modoFoto === 'url' ? 'bg-primary text-white' : 'bg-light text-gray-500'}`}>
-                  <Link size={14} /> Colar URL
-                </button>
-                <button type="button" onClick={() => setModoFoto('upload')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${modoFoto === 'upload' ? 'bg-primary text-white' : 'bg-light text-gray-500'}`}>
-                  <Image size={14} /> Upload
-                </button>
-              </div> */}
-
               {modoFoto === 'url' ? (
                 <input type="url" name="imagem" value={form.imagem} onChange={handleChange}
                   placeholder="https://exemplo.com/foto.jpg"
@@ -260,6 +230,7 @@ export default function Admin() {
                 <div className="relative">
                   <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
                   <input type="text" name="corretor" value={form.corretor} onChange={handleChange}
+                    placeholder="Ex.: Ernany Vitorino"
                     className="w-full bg-light p-3 pl-9 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
                   />
                 </div>

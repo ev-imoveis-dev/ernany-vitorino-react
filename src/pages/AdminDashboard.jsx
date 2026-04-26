@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Home, List, Settings, LogOut } from 'lucide-react'
+import { Home, List, Settings, LogOut, UserPlus } from 'lucide-react'
 
 const cards = [
   {
@@ -16,6 +16,14 @@ const cards = [
     titulo: 'Cadastrar Imóvel',
     descricao: 'Adicione um novo imóvel ao sistema.',
     rota: '/admin/cadastrar',
+    cor: 'text-secondary',
+    bg: 'bg-light',
+  },
+  {
+    icon: UserPlus,
+    titulo: 'Cadastrar Corretor',
+    descricao: 'Adicione um novo corretor ao painel.',
+    rota: '/cadastro-corretor',
     cor: 'text-secondary',
     bg: 'bg-light',
   },
@@ -41,16 +49,9 @@ export default function AdminDashboard() {
   const navigate = useNavigate()
   const corretor = JSON.parse(localStorage.getItem('corretor_logado') || 'null')
 
-//   useEffect(() => {
-//     if (!corretor) navigate('/login')
-//   }, [])
-
-//   if (!corretor) return null
-
   function handleCard(rota) {
     if (!rota) {
       localStorage.removeItem('corretor_logado')
-    //   navigate('/login')
       return
     }
     navigate(rota)
@@ -64,12 +65,14 @@ export default function AdminDashboard() {
             Painel Administrativo
           </span>
           <h1 className="text-4xl md:text-6xl font-serif text-primary mb-4">
-            {/* Olá, {corretor.nome.split(' ')[0]} */}
+            O que deseja fazer hoje?
           </h1>
-          <p className="text-gray-500 text-lg">O que deseja fazer hoje?</p>
+          <p className="text-gray-500 text-lg">
+            Gerencie imóveis, corretores e as configurações do site.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-6xl mx-auto">
           {cards.map(({ icon: Icon, titulo, descricao, rota, cor, bg }) => (
             <button
               key={titulo}
