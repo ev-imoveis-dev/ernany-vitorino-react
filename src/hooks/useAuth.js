@@ -9,8 +9,10 @@ export function useAuth() {
   useEffect(() => {
     if (!sessao) {
       navigate('/login')
+    } else if (sessao.trocar_senha) {
+      navigate('/trocar-senha')
     }
-  }, [])
+  }, [sessao, navigate])
 
   return sessao
 }

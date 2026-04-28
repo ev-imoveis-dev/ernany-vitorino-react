@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
+// src/pages/TrocarSenha.jsx
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
-import { trocarSenha, encerrarSessao } from '../services/authService'
-import { useAuth } from '../hooks/useAuth'
+import { trocarSenha, encerrarSessao, getSessao } from '../services/authService'
 
 export default function TrocarSenha() {
   const navigate = useNavigate()
-  const sessao = useAuth()
+  const sessao = getSessao()
 
   const [form, setForm] = useState({
     senha_atual: '',
@@ -22,7 +22,12 @@ export default function TrocarSenha() {
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState(false)
 
-  if (!sessao) return null
+  useEffect(() => {
+    // se não houver sessão, redireciona para login
+    if (!sessao) {
+      navigate('/login')
+    }
+  }, [navigate, sessao])
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -55,16 +60,28 @@ export default function TrocarSenha() {
     setCarregando(true)
 
     try {
-      await trocarSenha(form.senha_atual, form.nova_senha)
+      // envia para o backend; se backend não exigir senha_atual, passe undefined
+      const senha_atual = form.senha_atual || undefined
+      await trocarSenha(senha_atual, form.nova_senha)
+
+      // sucesso: encerra sessão e mostra mensagem antes de redirecionar
+      encerrarSessao()
       setSucesso(true)
+
+      // aguarda um instante para o usuário ver a mensagem, depois vai para login
+      setTimeout(() => {
+        navigate('/login')
+      }, 900)
     } catch (err) {
-      setErro(err.message || 'Erro ao trocar senha. Tente novamente.')
+      // mostra mensagem do backend quando disponível
+      setErro(err?.message || 'Erro ao trocar senha. Tente novamente.')
     } finally {
       setCarregando(false)
     }
   }
 
-  function handleContinuar() {
+  // botão "Ir para o login" — type button evita submit acidental
+  function handleIrParaLogin() {
     encerrarSessao()
     navigate('/login')
   }
@@ -104,7 +121,8 @@ export default function TrocarSenha() {
                   Sua senha foi atualizada com sucesso. Faça login novamente com a nova senha.
                 </p>
                 <button
-                  onClick={handleContinuar}
+                  type="button"
+                  onClick={handleIrParaLogin}
                   className="w-full bg-primary text-white font-bold py-4 rounded-xl hover:bg-secondary hover:text-primary transition-all uppercase tracking-widest text-sm"
                 >
                   Ir para o login
@@ -116,7 +134,7 @@ export default function TrocarSenha() {
                   Nova senha
                 </h3>
                 <p className="text-gray-400 text-sm mb-8">
-                  Olá, <strong>{sessao.usuario.nome}</strong>. Defina sua nova senha abaixo.
+                  Olá, <strong>{sessao?.usuario?.nome}</strong>. Defina sua nova senha abaixo.
                 </p>
 
                 {erro && (
@@ -139,7 +157,7 @@ export default function TrocarSenha() {
                           value={form[name]}
                           onChange={handleChange}
                           placeholder={placeholder}
-                          required
+                          required={name !== 'senha_atual' ? true : false}
                           className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-12 py-4 focus:outline-none focus:border-secondary transition-colors"
                         />
                         <button

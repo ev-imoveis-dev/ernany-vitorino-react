@@ -9,12 +9,44 @@ function headersAutenticados() {
   }
 }
 
-export async function getImoveis(tipo = '') {
-  const url = tipo ? `${BASE_URL}/imoveis?tipo=${tipo}` : `${BASE_URL}/imoveis`
-  const response = await fetch(url, { cache: 'no-store' })
-  if (!response.ok) throw new Error('Erro ao buscar imóveis')
+/**
+ * getImoveis - lista imóveis
+ * params: { tipo?: string, corretorId?: number }
+ * - Se passar corretorId, faz a requisição autenticada e filtra no backend (se suportado).
+ * - Se não passar, retorna todos (público).
+ */
+export async function getImoveis(params = {}) {
+  const { tipo, corretorId } = params
+
+  // monta query string básica
+  const qs = []
+  if (tipo) qs.push(`tipo=${encodeURIComponent(tipo)}`)
+  if (corretorId) qs.push(`corretorId=${encodeURIComponent(corretorId)}`)
+  const url = `${BASE_URL}/imoveis${qs.length ? '?' + qs.join('&') : ''}`
+
+  const options = {}
+  // se for listar por corretor, usamos token (rota protegida)
+  if (corretorId) {
+    options.headers = headersAutenticados()
+    options.cache = 'no-store'
+  } else {
+    // listagem pública
+    options.cache = 'no-store'
+  }
+
+  const response = await fetch(url, options)
+  if (!response.ok) {
+    // tenta extrair mensagem de erro
+    let msg = 'Erro ao buscar imóveis'
+    try {
+      const err = await response.json()
+      if (err && err.erro) msg = err.erro
+    } catch (e) {}
+    throw new Error(msg)
+  }
   const data = await response.json()
-  return data.dados ?? []
+  // compatibilidade: backend pode retornar { dados: [...] } ou array direto
+  return data.dados ?? data ?? []
 }
 
 export async function getImovelById(id) {

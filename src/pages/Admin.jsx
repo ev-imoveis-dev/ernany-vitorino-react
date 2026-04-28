@@ -8,6 +8,7 @@ import {
 
 const camposIniciais = {
   nome: '',
+  referencia: '',
   tipo_imovel: '',
   tipo: 'venda',
   valor: '',
@@ -124,6 +125,23 @@ export default function Admin() {
                 placeholder="Ex.: Apartamento no Centro" required
                 className="w-full bg-light p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Referência <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="referencia"
+                value={form.referencia || ''}
+                disabled
+                placeholder="Gerada automaticamente (REF0000)"
+                className="w-full bg-gray-100 p-3 rounded-xl text-sm focus:outline-none text-gray-500 cursor-not-allowed"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                A referência é gerada automaticamente pelo sistema
+              </p>
             </div>
 
             <div>

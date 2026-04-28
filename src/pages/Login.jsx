@@ -1,3 +1,4 @@
+// src/pages/Login.jsx
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
@@ -21,15 +22,42 @@ const Login = () => {
     setCarregando(true)
 
     try {
+      console.log('Login: enviando', { email: formData.email })
       const data = await loginUsuario(formData)
-      salvarSessao(data.token, data.usuario)
+      console.log('Login: resposta', data)
 
-      if (data.trocar_senha) {
+      // Extrai campos com fallback para diferentes formatos de backend
+      const token = data.token ?? data.accessToken ?? data.data?.token
+      const usuario = data.usuario ?? data.user ?? data.data?.usuario
+      const trocar_senha = data.trocar_senha ?? data.data?.trocar_senha ?? false
+
+      if (!token || !usuario) {
+        console.error('Resposta do backend sem token/usuario:', data)
+        throw new Error('Resposta do servidor inválida. Verifique o console (Network).')
+      }
+
+      // normaliza o papel para evitar problemas de case
+      if (usuario.papel) usuario.papel = String(usuario.papel).toLowerCase()
+
+      // Salva sessão (token, usuario, trocar_senha)
+      salvarSessao(token, usuario, trocar_senha)
+      console.log('Sessão salva:', { usuario, trocar_senha })
+
+      // Redirecionamento por papel e flag trocar_senha
+      if (trocar_senha) {
         navigate('/trocar-senha')
-      } else {
+        return
+      }
+
+      if (usuario.papel === 'admin') {
         navigate('/admin')
+      } else if (usuario.papel === 'corretor') {
+        navigate('/admin/imoveis')
+      } else {
+        navigate('/') // fallback seguro
       }
     } catch (err) {
+      console.error('Erro no login:', err)
       setErro(err.message || 'Erro ao fazer login. Tente novamente.')
     } finally {
       setCarregando(false)

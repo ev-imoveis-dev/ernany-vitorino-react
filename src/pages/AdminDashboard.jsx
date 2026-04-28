@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Home, List, Settings, LogOut, UserPlus } from 'lucide-react'
+import { encerrarSessao } from '../services/authService'
 
 const cards = [
   {
@@ -47,23 +48,25 @@ const cards = [
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
-  const corretor = JSON.parse(localStorage.getItem('corretor_logado') || 'null')
 
-  function handleCard(rota) {
-    if (!rota) {
-      localStorage.removeItem('corretor_logado')
+  function handleCard(rota, titulo) {
+    if (titulo === 'Sair') {
+      encerrarSessao()       // limpa token, usuario e trocar_senha
+      navigate('/login')     // redireciona para login
       return
     }
-    navigate(rota)
+    if (rota) {
+      navigate(rota)
+    }
   }
 
   return (
     <div className="pt-32 pb-24 bg-white min-h-screen">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <span className="text-secondary font-bold uppercase tracking-widest text-sm mb-4 block">
+          {/* <span className="text-secondary font-bold uppercase tracking-widest text-sm mb-4 block">
             Painel Administrativo
-          </span>
+          </span> */}
           <h1 className="text-4xl md:text-6xl font-serif text-primary mb-4">
             O que deseja fazer hoje?
           </h1>
@@ -76,7 +79,7 @@ export default function AdminDashboard() {
           {cards.map(({ icon: Icon, titulo, descricao, rota, cor, bg }) => (
             <button
               key={titulo}
-              onClick={() => handleCard(rota)}
+              onClick={() => handleCard(rota, titulo)}
               className="group text-left bg-light hover:bg-primary rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:border-primary transition-all duration-300"
             >
               <div className={`w-14 h-14 ${bg} group-hover:bg-white/10 rounded-2xl flex items-center justify-center mb-6 transition-all`}>

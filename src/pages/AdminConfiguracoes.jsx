@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react'
+// src/pages/AdminConfiguracoes.jsx
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Phone, Mail, MapPin, Instagram, Facebook, Youtube } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, MapPin, Instagram, Facebook } from 'lucide-react'
+import { getSessao, getToken } from '../services/authService'
 
+// valores iniciais locais (fallback)
 const inicial = {
   telefone1: '(27) 3333-3333',
   telefone2: '(27) 99999-9999',
@@ -12,31 +15,57 @@ const inicial = {
   cep: 'CEP: 29200-260',
   instagram: '',
   facebook: '',
-  youtube: '', // Remover campo YouTube se não for utilizado
 }
 
 export default function AdminConfiguracoes() {
   const navigate = useNavigate()
   const [form, setForm] = useState(inicial)
   const [sucesso, setSucesso] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [erro, setErro] = useState(null)
 
-  const corretor = JSON.parse(localStorage.getItem('corretor_logado') || 'null')
+  // usa sessão centralizada
+  const sessao = getSessao()
 
   useEffect(() => {
-    // if (!corretor) navigate('/login')
-  }, [])
+    // se não tem sessão, manda pro login
+    if (!sessao) {
+      navigate('/login')
+      return
+    }
 
-//   if (!corretor) return null
+    // se usuário não for admin, bloqueia (corretores não devem acessar)
+    const papel = String(sessao.usuario?.papel || '').toLowerCase()
+    if (papel !== 'admin') {
+      // redireciona corretor para painel de imóveis
+      navigate('/admin/imoveis')
+      return
+    }
+
+    // opcional: carregar configurações do backend aqui
+    // fetchConfig()
+  }, [navigate, sessao])
 
   function handleChange(e) {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    setSucesso(true)
-    setTimeout(() => setSucesso(false), 3000)
+    setErro(null)
+    setLoading(true)
+
+    try {
+      // exemplo local
+      setSucesso(true)
+      setTimeout(() => setSucesso(false), 3000)
+    } catch (err) {
+      console.error('Erro ao salvar configurações:', err)
+      setErro(err.message || 'Erro ao salvar configurações.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -60,6 +89,12 @@ export default function AdminConfiguracoes() {
             {sucesso && (
               <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl p-4 mb-8 text-sm font-medium">
                 Configurações salvas com sucesso!
+              </div>
+            )}
+
+            {erro && (
+              <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 mb-6 text-sm">
+                {erro}
               </div>
             )}
 
@@ -132,7 +167,6 @@ export default function AdminConfiguracoes() {
                   {[
                     { name: 'instagram', label: 'Instagram', icon: Instagram, placeholder: 'https://instagram.com/...' },
                     { name: 'facebook', label: 'Facebook', icon: Facebook, placeholder: 'https://facebook.com/...' },
-                    { name: 'youtube', label: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/...' },
                   ].map(({ name, label, icon: Icon, placeholder }) => (
                     <div key={name} className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
@@ -147,8 +181,9 @@ export default function AdminConfiguracoes() {
               </div>
 
               <button type="submit"
-                className="w-full bg-primary text-white font-bold py-5 rounded-xl hover:bg-secondary hover:text-primary transition-all shadow-xl shadow-primary/10 uppercase tracking-widest text-sm">
-                Salvar Configurações
+                disabled={loading}
+                className="w-full bg-primary text-white font-bold py-5 rounded-xl hover:bg-secondary hover:text-primary transition-all shadow-xl shadow-primary/10 uppercase tracking-widest text-sm disabled:opacity-60">
+                {loading ? 'Salvando...' : 'Salvar Configurações'}
               </button>
             </form>
           </div>

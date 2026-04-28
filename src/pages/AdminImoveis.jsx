@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getImoveis, deleteImovel } from '../services/imovelService'
 import { Pencil, Trash2, ArrowLeft, Home } from 'lucide-react'
+import { getSessao } from '../services/authService'
 
 export default function AdminImoveis() {
   const navigate = useNavigate()
@@ -10,28 +11,50 @@ export default function AdminImoveis() {
   const [erro, setErro] = useState(null)
   const [confirmando, setConfirmando] = useState(null)
 
-  const corretor = JSON.parse(localStorage.getItem('corretor_logado') || 'null')
+  // memoriza a sessão uma vez por montagem para evitar que o objeto mude a cada render
+  const sessao = useMemo(() => getSessao(), [])
 
   useEffect(() => {
-    // if (!corretor) {
-    //   navigate('/login')
-    //   return
-    // }
-    getImoveis()
-      .then(setImoveis)
-      .catch(() => setErro('Não foi possível carregar os imóveis.'))
-      .finally(() => setLoading(false))
-  }, [])
+    // se não houver sessão, redireciona (PrivateRoute já protege, mas deixamos a checagem)
+    if (!sessao) {
+      navigate('/login')
+      return
+    }
 
-//   if (!corretor) return null
+    // normaliza papel e id (valores primitivos)
+    const papel = String(sessao.usuario?.papel || '').toLowerCase()
+    const usuarioId = sessao.usuario?.id
+
+    setLoading(true)
+    setErro(null)
+
+    const carregar = async () => {
+      try {
+        const dados = papel === 'corretor'
+          ? await getImoveis({ corretorId: usuarioId })
+          : await getImoveis()
+        setImoveis(dados || [])
+      } catch (e) {
+        setErro(papel === 'corretor'
+          ? 'Não foi possível carregar os imóveis do corretor.'
+          : 'Não foi possível carregar os imóveis.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    carregar()
+    // dependências: apenas navigate (não sessao) — sessao foi memorizada
+  }, [navigate, sessao]) // sessao é estável por useMemo
 
   async function handleExcluir(id) {
     try {
       await deleteImovel(id)
       setImoveis(prev => prev.filter(item => item.id !== id))
       setConfirmando(null)
-    } catch {
-      alert('Erro ao excluir imóvel.')
+    } catch (err) {
+      const msg = err?.message || 'Erro ao excluir imóvel.'
+      alert(msg)
     }
   }
 
@@ -46,6 +69,18 @@ export default function AdminImoveis() {
       <p className="text-red-400 text-lg">{erro}</p>
     </div>
   )
+
+  // helper para checar se o usuário atual pode editar/deletar o imóvel
+  const podeEditarOuDeletar = (item) => {
+    if (!sessao || !sessao.usuario) return false
+    const papel = String(sessao.usuario.papel || '').toLowerCase()
+    const usuarioId = sessao.usuario.id
+    if (papel === 'admin') return true
+    if (item.corretor && (item.corretor.id === usuarioId || item.corretor === usuarioId)) return true
+    if (item.corretor_id && item.corretor_id === usuarioId) return true
+    if (item.corretorId && item.corretorId === usuarioId) return true
+    return false
+  }
 
   return (
     <div className="pt-32 pb-24 bg-white min-h-screen">
@@ -90,7 +125,7 @@ export default function AdminImoveis() {
                   <p className="text-sm text-gray-400 mt-1">
                     {Number(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     {' · '}
-                    {new Date(item.criado_em).toLocaleDateString('pt-BR')}
+                    {item.criado_em ? new Date(item.criado_em).toLocaleDateString('pt-BR') : ''}
                   </p>
                 </div>
 
@@ -109,20 +144,28 @@ export default function AdminImoveis() {
                     </div>
                   ) : (
                     <>
-                      <button
-                        onClick={() => navigate(`/admin/editar/${item.id}`)}
-                        className="flex flex-col items-center gap-1 border-2 border-blue-400 text-blue-400 rounded-xl p-3 hover:bg-blue-50 transition-colors"
-                      >
-                        <Pencil size={18} />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Editar</span>
-                      </button>
-                      <button
-                        onClick={() => setConfirmando(item.id)}
-                        className="flex flex-col items-center gap-1 border-2 border-red-400 text-red-400 rounded-xl p-3 hover:bg-red-50 transition-colors"
-                      >
-                        <Trash2 size={18} />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Remover</span>
-                      </button>
+                      {podeEditarOuDeletar(item) ? (
+                        <>
+                          <button
+                            onClick={() => navigate(`/admin/editar/${item.id}`)}
+                            className="flex flex-col items-center gap-1 border-2 border-blue-400 text-blue-400 rounded-xl p-3 hover:bg-blue-50 transition-colors"
+                          >
+                            <Pencil size={18} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Editar</span>
+                          </button>
+                          <button
+                            onClick={() => setConfirmando(item.id)}
+                            className="flex flex-col items-center gap-1 border-2 border-red-400 text-red-400 rounded-xl p-3 hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2 size={18} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Remover</span>
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex items-center text-sm text-gray-400 px-3 py-2 rounded-xl border border-gray-100">
+                          Sem permissão
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

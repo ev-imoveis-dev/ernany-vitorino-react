@@ -78,13 +78,13 @@ const PropertyCard = ({ property }) => {
           <div className="flex flex-col items-center gap-1">
             <BedDouble size={18} className="text-secondary" />
             <span className="text-xs text-gray-600 font-medium">
-              {quartos ?? '—'} qts
+              {quartos ?? '—'} Quartos
             </span>
           </div>
           <div className="flex flex-col items-center gap-1">
             <Bath size={18} className="text-secondary" />
             <span className="text-xs text-gray-600 font-medium">
-              {banheiros ?? '—'} ban
+              {banheiros ?? '—'} Banheiros
             </span>
           </div>
           <div className="flex flex-col items-center gap-1">
@@ -96,7 +96,7 @@ const PropertyCard = ({ property }) => {
           <div className="flex flex-col items-center gap-1">
             <Car size={18} className="text-secondary" />
             <span className="text-xs text-gray-600 font-medium">
-              {vagas ?? '—'} vg
+              {vagas ?? '—'} Vagas
             </span>
           </div>
         </div>
