@@ -52,7 +52,7 @@ const Login = () => {
       if (usuario.papel === 'admin') {
         navigate('/admin')
       } else if (usuario.papel === 'corretor') {
-        navigate('/admin/imoveis')
+        navigate('/corretor')
       } else {
         navigate('/') // fallback seguro
       }
