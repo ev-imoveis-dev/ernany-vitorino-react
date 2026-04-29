@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
@@ -15,6 +14,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminImoveis from './pages/AdminImoveis'
 import AdminConfiguracoes from './pages/AdminConfiguracoes'
 import AdminEditarImovel from './pages/AdminEditarImovel'
+import CorretorDashboard from './pages/CorretorDashboard'
 import Localizacao from './pages/Localizacao'
 import PrivateRoute from './components/PrivateRoute'
 
@@ -23,7 +23,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
-          {/* públicas */}
+          {/* Rotas públicas */}
           <Route index element={<Home />} />
           <Route path="imoveis" element={<PropertyList />} />
           <Route path="imoveis/:id" element={<PropertyDetail />} />
@@ -33,25 +33,22 @@ function App() {
           <Route path="trocar-senha" element={<TrocarSenha />} />
           <Route path="localizacao" element={<Localizacao />} />
 
-          {/* rotas protegidas apenas para admin */}
+          {/* Rotas exclusivas do Admin */}
           <Route element={<PrivateRoute role="admin" />}>
             <Route path="admin" element={<AdminDashboard />} />
+            <Route path="admin/imoveis" element={<AdminImoveis />} />
             <Route path="admin/cadastrar" element={<Admin />} />
-            <Route path="admin/configuracoes" element={<AdminConfiguracoes />} />
             <Route path="admin/editar/:id" element={<AdminEditarImovel />} />
+            <Route path="admin/configuracoes" element={<AdminConfiguracoes />} />
             <Route path="cadastro-corretor" element={<CadastroCorretor />} />
           </Route>
 
-          {/* rota de imóveis acessível por admin e corretor */}
-          <Route element={<PrivateRoute role={['admin', 'corretor']} />}>
-            <Route path="admin/imoveis" element={<AdminImoveis />} />
-          </Route>
-
-          {/* rotas exclusivas de corretor (se houver) */}
+          {/* Rotas exclusivas do Corretor */}
           <Route element={<PrivateRoute role="corretor" />}>
-            {/* adicione aqui rotas exclusivas de corretor, ex:
-                <Route path="corretor/dashboard" element={<CorretorDashboard />} />
-            */}
+            <Route path="corretor" element={<CorretorDashboard />} />
+            <Route path="corretor/imoveis" element={<AdminImoveis />} />
+            <Route path="corretor/cadastrar" element={<Admin />} />
+            <Route path="corretor/editar/:id" element={<AdminEditarImovel />} />
           </Route>
         </Route>
       </Routes>

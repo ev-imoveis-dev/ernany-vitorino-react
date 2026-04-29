@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createImovel } from '../services/imovelService'
+import { getSessao } from '../services/authService'
 import {
   BedDouble, Bath, Square, Car, User, MapPin,
   Home, ArrowLeft, X, Image, LogOut
@@ -25,6 +26,8 @@ const camposIniciais = {
 
 export default function Admin() {
   const navigate = useNavigate()
+  const sessao = useMemo(() => getSessao(), [])
+  const prefixo = sessao?.usuario?.papel === 'admin' ? '/admin' : '/corretor'
 
   const [form, setForm] = useState(camposIniciais)
   const [modoFoto, setModoFoto] = useState('url')
@@ -88,7 +91,7 @@ export default function Admin() {
 
         <div className="flex justify-between items-center mb-6">
           <button
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate(prefixo)}
             className="flex items-center gap-2 text-primary font-medium hover:opacity-70 transition-opacity"
           >
             <ArrowLeft size={18} /> Voltar ao Dashboard

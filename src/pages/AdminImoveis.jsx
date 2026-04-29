@@ -13,6 +13,8 @@ export default function AdminImoveis() {
 
   // memoriza a sessão uma vez por montagem para evitar que o objeto mude a cada render
   const sessao = useMemo(() => getSessao(), [])
+  const papel = String(sessao?.usuario?.papel || '').toLowerCase()
+  const prefixo = papel === 'admin' ? '/admin' : '/corretor'
 
   useEffect(() => {
     // se não houver sessão, redireciona (PrivateRoute já protege, mas deixamos a checagem)
@@ -86,7 +88,7 @@ export default function AdminImoveis() {
     <div className="pt-32 pb-24 bg-white min-h-screen">
       <div className="container mx-auto px-4 max-w-4xl">
 
-        <button onClick={() => navigate('/admin')}
+        <button onClick={() => navigate(prefixo)}
           className="flex items-center gap-2 text-primary font-medium mb-6 hover:opacity-70 transition-opacity">
           <ArrowLeft size={18} /> Voltar ao Dashboard
         </button>
@@ -96,7 +98,7 @@ export default function AdminImoveis() {
             <span className="text-secondary font-bold uppercase tracking-widest text-sm mb-1 block">Painel Admin</span>
             <h1 className="text-4xl font-serif text-primary">Imóveis Cadastrados</h1>
           </div>
-          <button onClick={() => navigate('/admin/cadastrar')}
+          <button onClick={() => navigate(`${prefixo}/cadastrar`)}
             className="flex items-center gap-2 bg-primary text-white font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors">
             <Home size={16} /> Novo Imóvel
           </button>
@@ -147,7 +149,7 @@ export default function AdminImoveis() {
                       {podeEditarOuDeletar(item) ? (
                         <>
                           <button
-                            onClick={() => navigate(`/admin/editar/${item.id}`)}
+                            onClick={() => navigate(`${prefixo}/editar/${item.id}`)}
                             className="flex flex-col items-center gap-1 border-2 border-blue-400 text-blue-400 rounded-xl p-3 hover:bg-blue-50 transition-colors"
                           >
                             <Pencil size={18} />
