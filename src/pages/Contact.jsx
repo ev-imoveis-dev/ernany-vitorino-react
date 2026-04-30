@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { MapPin, Phone, Mail, Instagram, Facebook, Youtube, MessageCircle } from 'lucide-react'
+import { MapPin, Phone, Mail, Instagram, Facebook, MessageCircle } from 'lucide-react'
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -76,7 +76,6 @@ const Contact = () => {
               <div className="flex gap-4">
                 <a href="#" className="text-gray-400 hover:text-secondary transition-colors"><Instagram size={20} /></a>
                 <a href="#" className="text-gray-400 hover:text-secondary transition-colors"><Facebook size={20} /></a>
-                <a href="#" className="text-gray-400 hover:text-secondary transition-colors"><Youtube size={20} /></a>
               </div>
             </div>
           </div>
