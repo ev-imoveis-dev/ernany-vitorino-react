@@ -72,7 +72,7 @@ export default function PropertyDetail() {
     nome, imagem, tipo, valor, quartos,
     banheiros, tamanho, vagas,
     descricao, caracteristicas, corretor,
-    localizacao
+    localizacao, referencia
   } = property
 
   const caracteristicasList = caracteristicas
@@ -134,6 +134,11 @@ export default function PropertyDetail() {
                   <span className="text-gray-400 flex items-center gap-1 text-sm">
                     <MapPin size={16} />
                     {localizacao}
+                  </span>
+                )}
+                {referencia && (
+                  <span className="text-gray-400 text-xs font-mono bg-light px-3 py-1 rounded-full border border-gray-200">
+                    Ref: {referencia}
                   </span>
                 )}
               </div>
@@ -217,15 +222,8 @@ export default function PropertyDetail() {
 
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-8">
-                    {/* <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-secondary p-1 bg-white shadow-lg">
-                      <img
-                        src={ernanyImg}
-                        alt="Ernany Vitorino"
-                        className="w-full h-full object-cover rounded-full"
-                      />
-                    </div> */}
                     <div>
-                      <h4 className="font-serif text-xl font-bold">Ernany Vitorino</h4>
+                      <h4 className="font-serif text-xl font-bold">{corretor || 'Corretor'}</h4>
                       <span className="text-secondary text-sm font-medium">Corretor Responsável</span>
                     </div>
                   </div>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { getImoveis } from '../services/imovelService'
 import PropertyCard from '../components/PropertyCard'
 import { Filter, X, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -87,10 +88,22 @@ const PainelFiltros = ({ filters, onFilter, onLimpar }) => (
 )
 
 export default function PropertyList() {
+  const location = useLocation()
   const [imoveis, setImoveis] = useState([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
-  const [filters, setFilters] = useState(FILTROS_INICIAIS)
+
+  // inicializa filtros a partir dos query params da URL (vindos da SearchBar da Home)
+  const [filters, setFilters] = useState(() => {
+    const params = new URLSearchParams(location.search)
+    return {
+      tipo: params.get('tipo') || FILTROS_INICIAIS.tipo,
+      tipo_imovel: params.get('tipo_imovel') || FILTROS_INICIAIS.tipo_imovel,
+      localizacao: params.get('localizacao') || FILTROS_INICIAIS.localizacao,
+      quartos: FILTROS_INICIAIS.quartos,
+      ordem: FILTROS_INICIAIS.ordem,
+    }
+  })
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [pagina, setPagina] = useState(1)
 

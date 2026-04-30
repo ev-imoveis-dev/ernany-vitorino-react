@@ -10,6 +10,7 @@ export default function AdminImoveis() {
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
   const [confirmando, setConfirmando] = useState(null)
+  const [buscaRef, setBuscaRef] = useState('')
 
   // memoriza a sessão uma vez por montagem para evitar que o objeto mude a cada render
   const sessao = useMemo(() => getSessao(), [])
@@ -76,11 +77,10 @@ export default function AdminImoveis() {
   const podeEditarOuDeletar = (item) => {
     if (!sessao || !sessao.usuario) return false
     const papel = String(sessao.usuario.papel || '').toLowerCase()
-    const usuarioId = sessao.usuario.id
+    const usuarioId = String(sessao.usuario.id)
     if (papel === 'admin') return true
-    if (item.corretor && (item.corretor.id === usuarioId || item.corretor === usuarioId)) return true
-    if (item.corretor_id && item.corretor_id === usuarioId) return true
-    if (item.corretorId && item.corretorId === usuarioId) return true
+    // corretor_id é o ID original do corretor salvo no banco
+    if (item.corretor_id && String(item.corretor_id) === usuarioId) return true
     return false
   }
 
@@ -104,13 +104,40 @@ export default function AdminImoveis() {
           </button>
         </div>
 
+        {/* Busca por referência */}
+        <div className="mb-6">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Buscar por código de referência..."
+              value={buscaRef}
+              onChange={e => setBuscaRef(e.target.value)}
+              className="w-full bg-light border border-gray-100 rounded-xl px-4 py-3 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </span>
+            {buscaRef && (
+              <button onClick={() => setBuscaRef('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">✕</button>
+            )}
+          </div>
+        </div>
+
         {imoveis.length === 0 ? (
           <div className="bg-light p-20 rounded-2xl text-center">
             <p className="text-gray-400 text-lg">Nenhum imóvel cadastrado ainda.</p>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {imoveis.map(item => (
+        ) : (() => {
+          const imoveisFiltrados = buscaRef
+            ? imoveis.filter(item => item.referencia?.toLowerCase().includes(buscaRef.toLowerCase()))
+            : imoveis
+          return imoveisFiltrados.length === 0 ? (
+            <div className="bg-light p-20 rounded-2xl text-center">
+              <p className="text-gray-400 text-lg">Nenhum imóvel com referência "<strong>{buscaRef}</strong>".</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {imoveisFiltrados.map(item => (
               <div key={item.id}
                 className="bg-light rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center hover:shadow-md transition-shadow">
 
@@ -174,7 +201,8 @@ export default function AdminImoveis() {
               </div>
             ))}
           </div>
-        )}
+        )
+        })()}
       </div>
     </div>
   )
