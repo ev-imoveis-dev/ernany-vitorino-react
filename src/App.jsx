@@ -22,7 +22,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout
+        <Route path="/" element={<Layout />}>
           {/* Rotas públicas */}
           <Route index element={<Home />} />
           <Route path="imoveis" element={<PropertyList />} />
