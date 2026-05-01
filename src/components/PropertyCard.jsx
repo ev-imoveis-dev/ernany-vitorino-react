@@ -16,6 +16,7 @@ const PropertyCard = ({ property }) => {
     tamanho,
     vagas,
     localizacao,
+    referencia
   } = property
 
   return (
@@ -58,7 +59,7 @@ const PropertyCard = ({ property }) => {
           {localizacao && (
             <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
               <MapPin size={12} className="text-secondary shrink-0" />
-              {localizacao}
+              {localizacao} - {referencia}
             </p>
           )}
         </div>

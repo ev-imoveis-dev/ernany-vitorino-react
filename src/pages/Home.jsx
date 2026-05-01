@@ -1,13 +1,23 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import PropertyCard from '../components/PropertyCard'
 import { getImoveis } from '../services/imovelService'
 import ernanyImg from '../assets/ernany.png'
-// import SearchBar from '../components/SearchBar'
+import SearchBar from '../components/SearchBar'
 
 const Home = () => {
+  const navigate = useNavigate()
+
+  function handleSearch(filters) {
+    const params = new URLSearchParams()
+    if (filters.finalidade) params.set('tipo', filters.finalidade.toLowerCase())
+    if (filters.tipo) params.set('tipo_imovel', filters.tipo)
+    if (filters.localizacao) params.set('localizacao', filters.localizacao)
+    navigate(`/imoveis?${params.toString()}`)
+  }
   const [destaques, setDestaques] = useState([])
 
   useEffect(() => {
@@ -53,7 +63,7 @@ const Home = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}>
-            {/* <SearchBar /> */}
+            <SearchBar onSearch={handleSearch} />
           </motion.div>
         </div>
 
