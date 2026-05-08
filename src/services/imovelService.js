@@ -3,7 +3,10 @@ import api from './api'
 export async function getImoveis(params = {}) {
   const { tipo, corretorId, page, limit } = params
   const { data } = await api.get('/imoveis', { params: { tipo, corretorId, page, limit } })
-  return data.dados ?? []
+  if (!data || !Array.isArray(data.dados)) {
+    throw new Error('Resposta inesperada do servidor ao carregar imóveis.')
+  }
+  return data.dados
 }
 
 export async function getImovelById(id) {
