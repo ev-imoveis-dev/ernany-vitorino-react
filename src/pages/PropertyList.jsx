@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { getImoveis } from '../services/imovelService'
 import PropertyCard from '../components/PropertyCard'
 import { Filter, X, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -89,6 +89,7 @@ const PainelFiltros = ({ filters, onFilter, onLimpar }) => (
 
 export default function PropertyList() {
   const location = useLocation()
+  const navigate = useNavigate()
   const [imoveis, setImoveis] = useState([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
@@ -99,12 +100,15 @@ export default function PropertyList() {
       tipo: params.get('tipo') || FILTROS_INICIAIS.tipo,
       tipo_imovel: params.get('tipo_imovel') || FILTROS_INICIAIS.tipo_imovel,
       localizacao: params.get('localizacao') || FILTROS_INICIAIS.localizacao,
-      quartos: FILTROS_INICIAIS.quartos,
-      ordem: FILTROS_INICIAIS.ordem,
+      quartos: params.get('quartos') || FILTROS_INICIAIS.quartos,
+      ordem: params.get('ordem') || FILTROS_INICIAIS.ordem,
     }
   })
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [pagina, setPagina] = useState(1)
+  const [pagina, setPagina] = useState(() => {
+    const params = new URLSearchParams(location.search)
+    return parseInt(params.get('pagina') || '1', 10)
+  })
 
   useEffect(() => {
     setLoading(true)
@@ -114,9 +118,20 @@ export default function PropertyList() {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (filters.tipo !== FILTROS_INICIAIS.tipo) params.set('tipo', filters.tipo)
+    if (filters.tipo_imovel !== FILTROS_INICIAIS.tipo_imovel) params.set('tipo_imovel', filters.tipo_imovel)
+    if (filters.localizacao) params.set('localizacao', filters.localizacao)
+    if (filters.quartos !== FILTROS_INICIAIS.quartos) params.set('quartos', filters.quartos)
+    if (filters.ordem !== FILTROS_INICIAIS.ordem) params.set('ordem', filters.ordem)
+    if (pagina > 1) params.set('pagina', pagina)
+    navigate({ search: params.toString() }, { replace: true })
+  }, [filters, pagina, navigate])
+
   useEffect(() => { setPagina(1) }, [filters])
 
-  const filtrados = useMemo(() => {
+const filtrados = useMemo(() => {
     return imoveis
       .filter(item => {
         const matchTipo = filters.tipo === 'todos' || item.tipo === filters.tipo

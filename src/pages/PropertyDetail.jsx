@@ -51,13 +51,48 @@ export default function PropertyDetail() {
     getImovelById(id)
       .then(async (data) => {
         setProperty(data)
-        // busca similares do mesmo tipo
         const todos = await getImoveis(data.tipo)
         setSimilares(todos.filter(item => item.id !== data.id).slice(0, 3))
       })
       .catch(() => setErro('Imóvel não encontrado.'))
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    if (!property) return
+
+    const preco = Number(property.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    const titulo = `${property.nome} — ${preco} | Ernany Vitorino Imóveis`
+    const descricaoOg = property.descricao
+      ? property.descricao.slice(0, 155)
+      : `${property.tipo_imovel || 'Imóvel'} à ${property.tipo} em ${property.localizacao || 'Guarapari/ES'}`
+
+    document.title = titulo
+
+    const setMeta = (prop, content, isName = false) => {
+      const attr = isName ? 'name' : 'property'
+      let el = document.querySelector(`meta[${attr}="${prop}"]`)
+      if (!el) {
+        el = document.createElement('meta')
+        el.setAttribute(attr, prop)
+        document.head.appendChild(el)
+      }
+      el.setAttribute('content', content)
+    }
+
+    setMeta('og:title', titulo)
+    setMeta('og:description', descricaoOg)
+    setMeta('og:type', 'website')
+    setMeta('og:url', window.location.href)
+    if (property.imagem) setMeta('og:image', property.imagem)
+    setMeta('twitter:card', 'summary_large_image', true)
+    setMeta('twitter:title', titulo, true)
+    setMeta('twitter:description', descricaoOg, true)
+
+    return () => {
+      document.title = 'Ernany Vitorino Imóveis'
+    }
+  }, [property])
 
   function handleChange(e) {
     const { name, value } = e.target

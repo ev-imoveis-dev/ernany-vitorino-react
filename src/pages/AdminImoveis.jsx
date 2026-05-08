@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { getImoveis, deleteImovel } from '../services/imovelService'
-import { Pencil, Trash2, ArrowLeft, Home } from 'lucide-react'
+import { Pencil, Trash2, ArrowLeft, Home, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getSessao } from '../services/authService'
 
 export default function AdminImoveis() {
@@ -12,6 +12,10 @@ export default function AdminImoveis() {
   const [erro, setErro] = useState(null)
   const [confirmando, setConfirmando] = useState(null)
   const [buscaRef, setBuscaRef] = useState('')
+  const [pagina, setPagina] = useState(1)
+
+  useEffect(() => { setPagina(1) }, [buscaRef])
+  const POR_PAGINA = 10
 
   const sessao = useMemo(() => getSessao(), [])
   const papel = String(sessao?.usuario?.papel || '').toLowerCase()
@@ -126,13 +130,19 @@ export default function AdminImoveis() {
           const imoveisFiltrados = buscaRef
             ? imoveis.filter(item => item.referencia?.toLowerCase().includes(buscaRef.toLowerCase()))
             : imoveis
+          const totalPaginas = Math.ceil(imoveisFiltrados.length / POR_PAGINA)
+          const paginaAtual = Math.min(pagina, totalPaginas || 1)
+          const paginados = imoveisFiltrados.slice((paginaAtual - 1) * POR_PAGINA, paginaAtual * POR_PAGINA)
+
           return imoveisFiltrados.length === 0 ? (
             <div className="bg-light p-20 rounded-2xl text-center">
               <p className="text-gray-400 text-lg">Nenhum imóvel com referência "<strong>{buscaRef}</strong>".</p>
             </div>
           ) : (
+            <>
+            <p className="text-sm text-gray-400 mb-4">{imoveisFiltrados.length} imóvel{imoveisFiltrados.length !== 1 ? 'is' : ''} encontrado{imoveisFiltrados.length !== 1 ? 's' : ''}</p>
             <div className="space-y-4">
-              {imoveisFiltrados.map(item => (
+              {paginados.map(item => (
                 <div key={item.id}
                   className="bg-light rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center hover:shadow-md transition-shadow">
 
@@ -202,6 +212,39 @@ export default function AdminImoveis() {
                 </div>
               ))}
             </div>
+
+            {totalPaginas > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  onClick={() => setPagina(p => Math.max(1, p - 1))}
+                  disabled={paginaAtual === 1}
+                  className="w-10 h-10 rounded-xl bg-light border border-gray-100 flex items-center justify-center hover:bg-primary hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(num => (
+                  <button
+                    key={num}
+                    onClick={() => setPagina(num)}
+                    className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                      paginaAtual === num
+                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                        : 'bg-light border border-gray-100 text-gray-500 hover:bg-primary hover:text-white'
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+                  disabled={paginaAtual === totalPaginas}
+                  className="w-10 h-10 rounded-xl bg-light border border-gray-100 flex items-center justify-center hover:bg-primary hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            )}
+            </>
           )
         })()}
       </div>
