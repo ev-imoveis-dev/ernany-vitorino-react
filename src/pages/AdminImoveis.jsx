@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { getImoveis, deleteImovel } from '../services/imovelService'
 import { Pencil, Trash2, ArrowLeft, Home } from 'lucide-react'
 import { getSessao } from '../services/authService'
@@ -51,9 +52,9 @@ export default function AdminImoveis() {
       await deleteImovel(id)
       setImoveis(prev => prev.filter(item => item.id !== id))
       setConfirmando(null)
+      toast.success('Imóvel removido com sucesso.')
     } catch (err) {
-      const msg = err?.message || 'Erro ao excluir imóvel.'
-      alert(msg)
+      toast.error(err?.message || 'Erro ao excluir imóvel.')
     }
   }
 

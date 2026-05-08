@@ -1,5 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
+import { ConfigProvider } from './context/ConfigContext'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import PropertyList from './pages/PropertyList'
@@ -20,7 +22,17 @@ import PrivateRoute from './components/PrivateRoute'
 
 function App() {
   return (
-    <Router>
+    <ConfigProvider>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: { fontFamily: 'DM Sans, sans-serif', fontSize: '14px' },
+          success: { style: { background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0' } },
+          error:   { style: { background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' } },
+        }}
+      />
+      <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
           {/* Rotas públicas */}
@@ -53,6 +65,7 @@ function App() {
         </Route>
       </Routes>
     </Router>
+    </ConfigProvider>
   )
 }
 

@@ -1,77 +1,27 @@
-import { getToken } from './authService'
-
-const BASE_URL = 'http://localhost:3333/api'
-
-function headersAutenticados() {
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${getToken()}`
-  }
-}
+import api from './api'
 
 export async function getImoveis(params = {}) {
-  const { tipo, corretorId } = params
-
-  const qs = []
-  if (tipo) qs.push(`tipo=${encodeURIComponent(tipo)}`)
-  if (corretorId) qs.push(`corretorId=${encodeURIComponent(corretorId)}`)
-  const url = `${BASE_URL}/imoveis${qs.length ? '?' + qs.join('&') : ''}`
-
-  const options = {}
-  if (corretorId) {
-    options.headers = headersAutenticados()
-    options.cache = 'no-store'
-  } else {
-    options.cache = 'no-store'
-  }
-
-  const response = await fetch(url, options)
-  if (!response.ok) {
-    let msg = 'Erro ao buscar imóveis'
-    try {
-      const err = await response.json()
-      if (err && err.erro) msg = err.erro
-    } catch (e) {}
-    throw new Error(msg)
-  }
-  const data = await response.json()
-  return data.dados ?? data ?? []
+  const { tipo, corretorId, page, limit } = params
+  const { data } = await api.get('/imoveis', { params: { tipo, corretorId, page, limit } })
+  return data.dados ?? []
 }
 
 export async function getImovelById(id) {
-  const response = await fetch(`${BASE_URL}/imoveis/${id}`)
-  if (!response.ok) throw new Error('Imóvel não encontrado')
-  return response.json()
+  const { data } = await api.get(`/imoveis/${id}`)
+  return data
 }
 
 export async function createImovel(dados) {
-  const response = await fetch(`${BASE_URL}/imoveis`, {
-    method: 'POST',
-    headers: headersAutenticados(),
-    body: JSON.stringify(dados)
-  })
-  const data = await response.json()
-  if (!response.ok) throw new Error(data.erro || 'Erro ao cadastrar imóvel')
+  const { data } = await api.post('/imoveis', dados)
   return data
 }
 
 export async function updateImovel(id, dados) {
-  const response = await fetch(`${BASE_URL}/imoveis/${id}`, {
-    method: 'PUT',
-    headers: headersAutenticados(),
-    body: JSON.stringify(dados)
-  })
-  const data = await response.json()
-  if (!response.ok) throw new Error(data.erro || 'Erro ao atualizar imóvel')
+  const { data } = await api.put(`/imoveis/${id}`, dados)
   return data
 }
 
 export async function deleteImovel(id) {
-  const response = await fetch(`${BASE_URL}/imoveis/${id}`, {
-    method: 'DELETE',
-    headers: headersAutenticados()
-  })
-  const data = await response.json()
-  if (!response.ok) throw new Error(data.erro || 'Erro ao deletar imóvel')
+  const { data } = await api.delete(`/imoveis/${id}`)
   return data
 }

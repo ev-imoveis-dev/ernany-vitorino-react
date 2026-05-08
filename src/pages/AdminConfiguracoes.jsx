@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Phone, Mail, MapPin, Instagram, Facebook } from 'lucide-react'
-import { getSessao, getToken } from '../services/authService'
+import { getSessao } from '../services/authService'
+import api from '../services/api'
 
 const inicial = {
   telefone1: '',
@@ -14,8 +15,6 @@ const inicial = {
   instagram: '',
   facebook: '',
 }
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333'
 
 export default function AdminConfiguracoes() {
   const navigate = useNavigate()
@@ -40,19 +39,15 @@ export default function AdminConfiguracoes() {
     }
 
     fetchConfiguracoes()
-  }, [navigate])
+  }, [navigate, sessao])
 
   async function fetchConfiguracoes() {
     try {
       setCarregando(true)
-      const res = await fetch(`${API_URL}/api/configuracoes`)
-      const json = await res.json()
-
-      if (!res.ok || !json.sucesso) throw new Error(json.erro || 'Erro ao carregar configurações.')
-
-      setForm(json.data)
+      const { data } = await api.get('/configuracoes')
+      if (!data.sucesso) throw new Error(data.erro || 'Erro ao carregar configurações.')
+      setForm(data.data)
     } catch (err) {
-      console.error(err)
       setErro(err.message || 'Erro ao carregar configurações.')
     } finally {
       setCarregando(false)
@@ -65,34 +60,22 @@ export default function AdminConfiguracoes() {
   }
 
   async function handleSubmit(e) {
-  e.preventDefault()
-  setErro(null)
-  setLoading(true)
+    e.preventDefault()
+    setErro(null)
+    setLoading(true)
 
-  try {
-    const res = await fetch(`${API_URL}/api/configuracoes`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify(form),
-    })
-
-    const json = await res.json()
-
-    if (!res.ok || !json.sucesso) throw new Error(json.erro || 'Erro ao salvar configurações.')
-
-    setForm(json.data)
-    setSucesso(true)
-    setTimeout(() => setSucesso(false), 3000)
-  } catch (err) {
-    console.error('Erro ao salvar configurações:', err)
-    setErro(err.message || 'Erro ao salvar configurações.')
-  } finally {
-    setLoading(false)
+    try {
+      const { data } = await api.put('/configuracoes', form)
+      if (!data.sucesso) throw new Error(data.erro || 'Erro ao salvar configurações.')
+      setForm(data.data)
+      setSucesso(true)
+      setTimeout(() => setSucesso(false), 3000)
+    } catch (err) {
+      setErro(err.message || 'Erro ao salvar configurações.')
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   if (carregando) {
     return (

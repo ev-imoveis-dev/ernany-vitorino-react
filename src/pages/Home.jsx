@@ -5,11 +5,20 @@ import { motion } from 'framer-motion'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import PropertyCard from '../components/PropertyCard'
 import { getImoveis } from '../services/imovelService'
+import { useConfig } from '../context/ConfigContext'
 import ernanyImg from '../assets/ernany.png'
 import SearchBar from '../components/SearchBar'
 
+function formatarWhatsApp(tel) {
+  if (!tel) return null
+  const numeros = tel.replace(/\D/g, '')
+  return numeros.startsWith('55') ? numeros : `55${numeros}`
+}
+
 const Home = () => {
   const navigate = useNavigate()
+  const config = useConfig()
+  const whatsappNumero = formatarWhatsApp(config?.telefone1)
 
   function handleSearch(filters) {
     const params = new URLSearchParams()
@@ -184,12 +193,16 @@ const Home = () => {
             Pronto para encontrar seu <br className="hidden md:block" /> próximo endereço?
           </h2>
           <div className="flex flex-col md:flex-row gap-4 justify-center">
-            <a
-              href="https://wa.me/5527999999999"
-              className="bg-primary text-white px-12 py-5 rounded-xl font-bold text-lg hover:bg-dark transition-all shadow-2xl"
-            >
-              FALAR NO WHATSAPP
-            </a>
+            {whatsappNumero && (
+              <a
+                href={`https://wa.me/${whatsappNumero}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-primary text-white px-12 py-5 rounded-xl font-bold text-lg hover:bg-dark transition-all shadow-2xl"
+              >
+                FALAR NO WHATSAPP
+              </a>
+            )}
             <Link
               to="/imoveis"
               className="bg-white text-primary px-12 py-5 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-2xl"
