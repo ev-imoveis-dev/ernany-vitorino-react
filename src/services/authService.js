@@ -1,38 +1,17 @@
-const BASE_URL = 'http://localhost:3333/api'
+import api from './api'
 
 export async function loginUsuario(dados) {
-  const response = await fetch(`${BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(dados)
-  })
-  const data = await response.json()
-  if (!response.ok) throw new Error(data.erro || 'Erro ao fazer login.')
+  const { data } = await api.post('/auth/login', dados)
   return data
 }
 
 export async function esqueceuSenha(email) {
-  const response = await fetch(`${BASE_URL}/auth/esqueceu`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
-  })
-  const data = await response.json()
-  if (!response.ok) throw new Error(data.erro || 'Erro ao solicitar recuperação.')
+  const { data } = await api.post('/auth/esqueceu', { email })
   return data
 }
 
 export async function trocarSenha(senha_atual, nova_senha) {
-  const response = await fetch(`${BASE_URL}/auth/trocar-senha`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`
-    },
-    body: JSON.stringify({ senha_atual, nova_senha })
-  })
-  const data = await response.json()
-  if (!response.ok) throw new Error(data.erro || 'Erro ao trocar senha.')
+  const { data } = await api.post('/auth/trocar-senha', { senha_atual, nova_senha })
   return data
 }
 
@@ -47,6 +26,19 @@ export function getSessao() {
   const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
   const trocarSenha = localStorage.getItem('trocar_senha') === 'true'
   if (!token || !usuario) return null
+
+  // Verifica expiração do JWT sem biblioteca externa
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    if (payload.exp && Date.now() / 1000 > payload.exp) {
+      encerrarSessao()
+      return null
+    }
+  } catch {
+    encerrarSessao()
+    return null
+  }
+
   return { token, usuario, trocar_senha: trocarSenha }
 }
 

@@ -4,11 +4,19 @@ import {
   BedDouble, Bath, Square, Car, MapPin,
   MessageCircle, ArrowLeft, CheckCircle2, Info
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import Slider from 'react-slick'
 import PropertyCard from '../components/PropertyCard'
 import Map from '../components/Map'
 import { getImovelById, getImoveis } from '../services/imovelService'
+import { useConfig } from '../context/ConfigContext'
 import ernanyImg from '../assets/ernany.png'
+
+function formatarWhatsApp(tel) {
+  if (!tel) return null
+  const numeros = tel.replace(/\D/g, '')
+  return numeros.startsWith('55') ? numeros : `55${numeros}`
+}
 
 const SliderComponent = Slider.default || Slider
 
@@ -24,6 +32,8 @@ const sliderSettings = {
 
 export default function PropertyDetail() {
   const { id } = useParams()
+  const config = useConfig()
+  const whatsappNumero = formatarWhatsApp(config?.telefone1)
 
   const [property, setProperty] = useState(null)
   const [similares, setSimilares] = useState([])
@@ -56,7 +66,7 @@ export default function PropertyDetail() {
 
   function handleSubmit(e) {
     e.preventDefault()
-    alert('Mensagem enviada! Ernany Vitorino entrará em contato em breve.')
+    toast.success('Mensagem enviada! Ernany Vitorino entrará em contato em breve.')
     setFormData({ nome: '', email: '', telefone: '', mensagem: '' })
   }
 
@@ -243,15 +253,17 @@ export default function PropertyDetail() {
                     </button>
                   </form>
 
-                  <a
-                    href={`https://wa.me/5527999999999?text=${whatsappMessage}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full bg-[#25D366] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
-                  >
-                    <MessageCircle size={24} />
-                    FALAR NO WHATSAPP
-                  </a>
+                  {whatsappNumero && (
+                    <a
+                      href={`https://wa.me/${whatsappNumero}?text=${whatsappMessage}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-[#25D366] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                    >
+                      <MessageCircle size={24} />
+                      FALAR NO WHATSAPP
+                    </a>
+                  )}
                 </div>
               </div>
 

@@ -1,10 +1,20 @@
-import React from 'react';
-import { MessageCircle } from 'lucide-react';
+import React from 'react'
+import { MessageCircle } from 'lucide-react'
+import { useConfig } from '../context/ConfigContext'
+
+function formatarWhatsApp(tel) {
+  if (!tel) return null
+  const numeros = tel.replace(/\D/g, '')
+  return numeros.startsWith('55') ? numeros : `55${numeros}`
+}
 
 const WhatsAppButton = () => {
-  const whatsappNumber = "5527999999999"; // Exemplo
-  const message = encodeURIComponent("Olá, tenho interesse em um imóvel.");
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+  const config = useConfig()
+  const numero = formatarWhatsApp(config?.telefone1)
+  if (!numero) return null
+
+  const message = encodeURIComponent('Olá, tenho interesse em um imóvel.')
+  const whatsappUrl = `https://wa.me/${numero}?text=${message}`
 
   return (
     <a
@@ -19,7 +29,7 @@ const WhatsAppButton = () => {
         Fale conosco
       </span>
     </a>
-  );
-};
+  )
+}
 
-export default WhatsAppButton;
+export default WhatsAppButton

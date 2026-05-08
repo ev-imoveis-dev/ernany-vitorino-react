@@ -1,18 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Instagram, Facebook, Mail, MapPin, Phone } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333';
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { Instagram, Facebook, Mail, MapPin, Phone } from 'lucide-react'
+import { useConfig } from '../context/ConfigContext'
 
 const Footer = () => {
-  const [config, setConfig] = useState(null)
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/configuracoes`)
-      .then(res => res.json())
-      .then(json => { if (json.sucesso) setConfig(json.data) })
-      .catch(err => console.error('Erro ao carregar configurações:', err))
-  }, [])
+  const config = useConfig()
 
   return (
     <footer className="bg-dark text-white pt-20 pb-10 border-t border-white/10">
@@ -62,9 +54,7 @@ const Footer = () => {
               <li className="flex gap-3 text-white/60">
                 <MapPin size={20} className="text-secondary shrink-0" />
                 <span>
-                  {config
-                    ? `${config.endereco} - ${config.cidade}`
-                    : '—'}
+                  {config ? `${config.endereco} - ${config.cidade}` : '—'}
                 </span>
               </li>
               <li className="flex gap-3 text-white/60">
@@ -94,7 +84,7 @@ const Footer = () => {
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default Footer;
+export default Footer

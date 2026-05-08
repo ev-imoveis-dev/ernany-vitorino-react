@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { MapPin, Phone, Mail, Instagram, Facebook, MessageCircle } from 'lucide-react'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333'
+import toast from 'react-hot-toast'
+import { useConfig } from '../context/ConfigContext'
 
 const Contact = () => {
+  const config = useConfig()
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -12,15 +13,6 @@ const Contact = () => {
     mensagem: ''
   })
 
-  const [config, setConfig] = useState(null)
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/configuracoes`)
-      .then(res => res.json())
-      .then(json => { if (json.sucesso) setConfig(json.data) })
-      .catch(err => console.error('Erro ao carregar configurações:', err))
-  }, [])
-
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
@@ -28,7 +20,7 @@ const Contact = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    alert('Mensagem enviada com sucesso! Em breve entraremos em contato.')
+    toast.success('Mensagem enviada com sucesso! Em breve entraremos em contato.')
     setFormData({ nome: '', email: '', telefone: '', assunto: 'Comprar Imóvel', mensagem: '' })
   }
 
