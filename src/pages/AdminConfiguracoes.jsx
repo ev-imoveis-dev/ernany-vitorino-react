@@ -24,9 +24,9 @@ export default function AdminConfiguracoes() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
 
-  const sessao = getSessao()
-
   useEffect(() => {
+    const sessao = getSessao()
+
     if (!sessao) {
       navigate('/login')
       return
@@ -39,7 +39,7 @@ export default function AdminConfiguracoes() {
     }
 
     fetchConfiguracoes()
-  }, [navigate, sessao])
+  }, [navigate])
 
   async function fetchConfiguracoes() {
     try {

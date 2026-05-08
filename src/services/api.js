@@ -11,10 +11,14 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+const ROTAS_SEM_AUTO_LOGOUT = ['/auth/login', '/auth/trocar-senha', '/auth/esqueceu']
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url || ''
+    const ehRotaPublica = ROTAS_SEM_AUTO_LOGOUT.some(r => url.includes(r))
+    if (error.response?.status === 401 && !ehRotaPublica) {
       encerrarSessao()
       window.location.href = '/login'
     }

@@ -6,8 +6,6 @@ import { trocarSenha, encerrarSessao, getSessao } from '../services/authService'
 
 export default function TrocarSenha() {
   const navigate = useNavigate()
-  const sessao = getSessao()
-
   const [form, setForm] = useState({
     senha_atual: '',
     nova_senha: '',
@@ -22,11 +20,13 @@ export default function TrocarSenha() {
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState(false)
 
+  const sessao = getSessao()
+
   useEffect(() => {
-    if (!sessao) {
+    if (!getSessao()) {
       navigate('/login')
     }
-  }, [navigate, sessao])
+  }, [navigate])
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -69,7 +69,7 @@ export default function TrocarSenha() {
         navigate('/login')
       }, 900)
     } catch (err) {
-      setErro(err?.message || 'Erro ao trocar senha. Tente novamente.')
+      setErro(err?.response?.data?.erro || err?.message || 'Erro ao trocar senha. Tente novamente.')
     } finally {
       setCarregando(false)
     }
@@ -151,7 +151,7 @@ export default function TrocarSenha() {
                           value={form[name]}
                           onChange={handleChange}
                           placeholder={placeholder}
-                          required={name !== 'senha_atual' ? true : false}
+                          required
                           className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-12 py-4 focus:outline-none focus:border-secondary transition-colors"
                         />
                         <button

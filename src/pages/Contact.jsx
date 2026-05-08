@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { MapPin, Phone, Mail, Instagram, Facebook, MessageCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useConfig } from '../context/ConfigContext'
+import { enviarContato } from '../services/contatoService'
 
 const Contact = () => {
   const config = useConfig()
@@ -12,16 +13,25 @@ const Contact = () => {
     assunto: 'Comprar Imóvel',
     mensagem: ''
   })
+  const [carregando, setCarregando] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    toast.success('Mensagem enviada com sucesso! Em breve entraremos em contato.')
-    setFormData({ nome: '', email: '', telefone: '', assunto: 'Comprar Imóvel', mensagem: '' })
+    setCarregando(true)
+    try {
+      await enviarContato(formData)
+      toast.success('Mensagem enviada! Em breve entraremos em contato.')
+      setFormData({ nome: '', email: '', telefone: '', assunto: 'Comprar Imóvel', mensagem: '' })
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setCarregando(false)
+    }
   }
 
   return (
@@ -141,9 +151,9 @@ const Contact = () => {
                   className="w-full bg-white border border-gray-200 rounded-xl px-4 py-4 focus:outline-none focus:border-secondary transition-colors"
                   placeholder="Como podemos ajudar?" required />
               </div>
-              <button type="submit"
-                className="w-full bg-primary text-white font-bold py-5 rounded-xl hover:bg-secondary hover:text-primary transition-all shadow-xl shadow-primary/10 uppercase tracking-widest text-sm">
-                Enviar Mensagem
+              <button type="submit" disabled={carregando}
+                className="w-full bg-primary text-white font-bold py-5 rounded-xl hover:bg-secondary hover:text-primary transition-all shadow-xl shadow-primary/10 uppercase tracking-widest text-sm disabled:opacity-60">
+                {carregando ? 'Enviando...' : 'Enviar Mensagem'}
               </button>
             </form>
           </div>

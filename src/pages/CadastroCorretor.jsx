@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Mail, User, Phone, Copy, CheckCircle2, X } from 'lucide-react'
+import { Mail, User, Phone, CheckCircle2, X } from 'lucide-react'
 import { cadastrarCorretor } from '../services/corretorService'
 
 const CadastroCorretor = () => {
@@ -14,8 +14,7 @@ const CadastroCorretor = () => {
 
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
-  const [senhaGerada, setSenhaGerada] = useState(null)
-  const [copiado, setCopiado] = useState(false)
+  const [corretorCadastrado, setCorretorCadastrado] = useState(null)
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -29,19 +28,13 @@ const CadastroCorretor = () => {
 
     try {
       const data = await cadastrarCorretor(formData)
-      setSenhaGerada(data)
+      setCorretorCadastrado(data)
       setFormData({ nome: '', email: '', celular: '' })
     } catch (err) {
       setErro(err.message || 'Erro ao cadastrar corretor. Tente novamente.')
     } finally {
       setCarregando(false)
     }
-  }
-
-  function copiarSenha() {
-    navigator.clipboard.writeText(senhaGerada.senha_temporaria)
-    setCopiado(true)
-    setTimeout(() => setCopiado(false), 2000)
   }
 
   return (
@@ -57,7 +50,7 @@ const CadastroCorretor = () => {
             Cadastrar <br /> Corretor
           </h1>
           <p className="text-gray-500 text-lg">
-            Adicione um novo corretor. Uma senha temporária será gerada automaticamente.
+            Adicione um novo corretor. As credenciais serão enviadas por e-mail automaticamente.
           </p>
         </div>
 
@@ -65,7 +58,7 @@ const CadastroCorretor = () => {
           <div className="bg-light p-8 md:p-12 rounded-3xl">
 
             {/* Estado: sucesso */}
-            {senhaGerada ? (
+            {corretorCadastrado ? (
               <div className="text-center space-y-6">
                 <div className="flex justify-center">
                   <CheckCircle2 size={64} className="text-green-500" />
@@ -76,40 +69,9 @@ const CadastroCorretor = () => {
                     Corretor cadastrado!
                   </h3>
                   <p className="text-gray-500 text-sm">
-                    Compartilhe as credenciais abaixo com {senhaGerada.nome}
+                    As credenciais foram enviadas por e-mail para{' '}
+                    <span className="font-medium text-primary">{corretorCadastrado.email}</span>.
                   </p>
-                </div>
-
-                {/* Credenciais */}
-                <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3 text-left">
-                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
-                      E-mail
-                    </p>
-                    <p className="text-sm font-mono text-primary">{senhaGerada.email}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
-                      Senha Temporária
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-mono text-primary font-bold tracking-widest">
-                        {senhaGerada.senha_temporaria}
-                      </p>
-                      <button
-                        onClick={copiarSenha}
-                        className="p-2 hover:bg-light rounded transition-colors"
-                        title="Copiar"
-                      >
-                        <Copy size={16} className={copiado ? 'text-green-500' : 'text-gray-400'} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-2 text-xs text-yellow-700">
-                    ⚠️ O corretor deve alterar a senha no primeiro login
-                  </div>
                 </div>
 
                 <button
@@ -193,8 +155,8 @@ const CadastroCorretor = () => {
                     <p className="font-medium mb-1">Como funciona:</p>
                     <ul className="text-xs space-y-1 list-disc list-inside">
                       <li>Uma senha temporária será gerada</li>
-                      <li>Compartilhe com o corretor</li>
-                      <li>Ele altera no primeiro login</li>
+                      <li>As credenciais são enviadas por e-mail ao corretor</li>
+                      <li>Ele altera a senha no primeiro login</li>
                     </ul>
                   </div>
 

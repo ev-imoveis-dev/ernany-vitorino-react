@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Home, List, Settings, LogOut, UserPlus } from 'lucide-react'
+import { Home, List, Settings, LogOut, UserPlus, Users } from 'lucide-react'
 import { encerrarSessao } from '../services/authService'
 
 const cards = [
@@ -25,6 +25,14 @@ const cards = [
     titulo: 'Cadastrar Corretor',
     descricao: 'Adicione um novo corretor ao painel.',
     rota: '/cadastro-corretor',
+    cor: 'text-secondary',
+    bg: 'bg-light',
+  },
+  {
+    icon: Users,
+    titulo: 'Ver Corretores',
+    descricao: 'Edite dados e gerencie senhas dos corretores.',
+    rota: '/admin/corretores',
     cor: 'text-secondary',
     bg: 'bg-light',
   },

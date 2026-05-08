@@ -16,6 +16,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminImoveis from './pages/AdminImoveis'
 import AdminConfiguracoes from './pages/AdminConfiguracoes'
 import AdminEditarImovel from './pages/AdminEditarImovel'
+import AdminCorretores from './pages/AdminCorretores'
 import CorretorDashboard from './pages/CorretorDashboard'
 import Localizacao from './pages/Localizacao'
 import PrivateRoute from './components/PrivateRoute'
@@ -52,6 +53,7 @@ function App() {
             <Route path="admin/cadastrar" element={<Admin />} />
             <Route path="admin/editar/:id" element={<AdminEditarImovel />} />
             <Route path="admin/configuracoes" element={<AdminConfiguracoes />} />
+            <Route path="admin/corretores" element={<AdminCorretores />} />
             <Route path="cadastro-corretor" element={<CadastroCorretor />} />
           </Route>
 

@@ -7,7 +7,6 @@ export default function EsqueceuSenha() {
   const [email, setEmail] = useState('')
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
-  const [senhaTemporaria, setSenhaTemporaria] = useState('')
   const [enviado, setEnviado] = useState(false)
 
   async function handleSubmit(e) {
@@ -16,8 +15,7 @@ export default function EsqueceuSenha() {
     setCarregando(true)
 
     try {
-      const data = await esqueceuSenha(email)
-      setSenhaTemporaria(data.senha_temporaria)
+      await esqueceuSenha(email)
       setEnviado(true)
     } catch (err) {
       setErro(err.message || 'Erro ao solicitar recuperação. Tente novamente.')
@@ -61,24 +59,11 @@ export default function EsqueceuSenha() {
                   <CheckCircle size={64} className="text-green-500" />
                 </div>
                 <h3 className="text-2xl font-serif text-primary mb-3">
-                  Senha gerada!
+                  E-mail enviado!
                 </h3>
-                <p className="text-gray-500 text-sm mb-6">
-                  Use a senha temporária abaixo para fazer login. Você será redirecionado para trocar a senha.
+                <p className="text-gray-500 text-sm mb-8">
+                  Se este e-mail estiver cadastrado, você receberá a senha temporária em instantes. Verifique também a caixa de spam.
                 </p>
-
-              
-                {senhaTemporaria && (
-                  <div className="bg-white border border-secondary/30 rounded-xl p-4 mb-8">
-                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
-                      Senha temporária
-                    </p>
-                    <p className="text-2xl font-bold text-primary tracking-widest font-mono">
-                      {senhaTemporaria}
-                    </p>
-                  </div>
-                )}
-
                 <Link
                   to="/login"
                   className="w-full bg-primary text-white font-bold py-4 rounded-xl hover:bg-secondary hover:text-primary transition-all uppercase tracking-widest text-sm flex items-center justify-center"

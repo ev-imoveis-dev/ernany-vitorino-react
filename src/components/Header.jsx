@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, MessageCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '../utils/cn'
+import { useConfig } from '../context/ConfigContext'
 
 const ALTURA_HEADER = 80
 
@@ -11,6 +12,10 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+  const config = useConfig()
+  const numeroWpp = config?.telefone1
+    ? `https://wa.me/${config.telefone1.replace(/\D/g, '').replace(/^(?!55)/, '55')}`
+    : null
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50)
@@ -96,7 +101,7 @@ const Header = () => {
             )
           ))}
           <a
-            href="https://wa.me/5527999999999"
+            href={numeroWpp || '#'}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-secondary hover:bg-opacity-90 text-primary px-6 py-2.5 rounded-full font-bold text-sm transition-all flex items-center gap-2"
@@ -151,7 +156,7 @@ const Header = () => {
                 )
               ))}
               <a
-                href="https://wa.me/5527999999999"
+                href={numeroWpp || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-6 bg-secondary text-primary text-center py-4 rounded-xl font-bold text-lg"
