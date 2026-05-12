@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getImovelById, updateImovel } from '../services/imovelService'
 import { getSessao } from '../services/authService'
 import { getCorretores } from "../services/usuarioService"
+import { criarItemImagem, criarItemImagemExistente, montarFormDataImovel } from '../utils/imovelFormData'
 
 import {
   BedDouble, Bath, Square, Car, User, MapPin,
@@ -44,7 +45,8 @@ export default function AdminEditarImovel() {
           caracteristicas: data.caracteristicas ?? '',
           corretor: data.corretor ?? '',
           localizacao: data.localizacao ?? '',
-          imagens: Array.isArray(data.imagens) ? data.imagens : (data.imagem ? [data.imagem] : []),
+          imagens: (Array.isArray(data.imagens) ? data.imagens : (data.imagem ? [data.imagem] : []))
+            .map(criarItemImagemExistente),
         })
 
         setCorretorSelecionado(
@@ -99,14 +101,10 @@ export default function AdminEditarImovel() {
     }
 
     files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setForm((prev) => ({ 
-          ...prev, 
-          imagens: [...prev.imagens, ev.target.result] 
-        }));
-      };
-      reader.readAsDataURL(file);
+      setForm((prev) => ({
+        ...prev,
+        imagens: [...prev.imagens, criarItemImagem(file)]
+      }));
     });
   }
 
@@ -134,13 +132,15 @@ export default function AdminEditarImovel() {
         vagas: form.vagas ? parseInt(form.vagas) : undefined,
       }
 
-      if (papel === 'admin') {
-        payload.corretor = corretorSelecionado === ''
-          ? Number(usuarioId)
-          : Number(corretorSelecionado)
-      }
+      const extras = papel === 'admin'
+        ? {
+            corretor: corretorSelecionado === ''
+              ? Number(usuarioId)
+              : Number(corretorSelecionado)
+          }
+        : {}
 
-      await updateImovel(id, payload)
+      await updateImovel(id, montarFormDataImovel(payload, extras))
 
       setSucesso(true)
       window.scrollTo(0, 0)
@@ -235,7 +235,7 @@ export default function AdminEditarImovel() {
                   {form.imagens.map((foto, index) => (
                     <div key={index} className="relative group aspect-square">
                       <img
-                        src={foto}
+                        src={foto.preview}
                         alt={`Preview ${index + 1}`}
                         className="w-full h-full object-cover rounded-xl border border-gray-100"
                       />

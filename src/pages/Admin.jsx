@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createImovel } from "../services/imovelService";
 import { getSessao } from "../services/authService";
 import { getUsuarios, getCorretores } from "../services/usuarioService";
+import { criarItemImagem, montarFormDataImovel } from "../utils/imovelFormData";
 
 import {
   BedDouble,
@@ -91,14 +92,10 @@ export default function Admin() {
     }
 
     files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setForm((prev) => ({ 
-          ...prev, 
-          imagens: [...prev.imagens, ev.target.result] 
-        }));
-      };
-      reader.readAsDataURL(file);
+      setForm((prev) => ({
+        ...prev,
+        imagens: [...prev.imagens, criarItemImagem(file)]
+      }));
     });
   }
 
@@ -138,13 +135,11 @@ export default function Admin() {
         vagas: form.vagas ? Number(form.vagas) : undefined,
       };
 
-      if (papel === 'corretor') {
-        payload.corretor = usuarioId;
-      } else {
-        payload.corretor = corretorSelecionado?.trim() || null;
+      const extras = {
+        corretor: papel === 'corretor' ? usuarioId : (corretorSelecionado?.trim() || null),
       }
 
-      await createImovel(payload);
+      await createImovel(montarFormDataImovel(payload, extras));
       setSucesso(true);
       setTimeout(() => {
         navigate(`${prefixo}/imoveis`);
@@ -234,7 +229,7 @@ export default function Admin() {
                   {form.imagens.map((foto, index) => (
                     <div key={index} className="relative group aspect-square">
                       <img
-                        src={foto}
+                        src={foto.preview}
                         alt={`Preview ${index + 1}`}
                         className="w-full h-full object-cover rounded-xl border border-gray-100"
                       />

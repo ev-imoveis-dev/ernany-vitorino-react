@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
   BedDouble, Bath, Square, Car, MapPin,
-  MessageCircle, ArrowLeft, CheckCircle2, Info
+  MessageCircle, ArrowLeft, CheckCircle2, Info, ChevronLeft, ChevronRight
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Slider from 'react-slick'
@@ -20,25 +20,17 @@ function formatarWhatsApp(tel) {
 
 const SliderComponent = Slider.default || Slider
 
-const sliderSettings = {
-  dots: true,
-  infinite: true,
-  speed: 500,
-  slidesToShow: 1,
-  slidesToScroll: 1,
-  autoplay: true,
-  fade: true
-}
-
 export default function PropertyDetail() {
   const { id } = useParams()
   const config = useConfig()
   const whatsappNumero = formatarWhatsApp(config?.telefone1)
+  const sliderRef = useRef(null)
 
   const [property, setProperty] = useState(null)
   const [similares, setSimilares] = useState([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState('')
+  const [fotoAtual, setFotoAtual] = useState(0)
   const [formData, setFormData] = useState({
     nome: '', email: '', telefone: '', mensagem: ''
   })
@@ -84,7 +76,10 @@ export default function PropertyDetail() {
     setMeta('og:description', descricaoOg)
     setMeta('og:type', 'website')
     setMeta('og:url', window.location.href)
-    if (property.imagem) setMeta('og:image', property.imagem)
+    const imagemOg = Array.isArray(property.imagens) && property.imagens.length > 0
+      ? property.imagens[0]
+      : property.imagem
+    if (imagemOg) setMeta('og:image', imagemOg)
     setMeta('twitter:card', 'summary_large_image', true)
     setMeta('twitter:title', titulo, true)
     setMeta('twitter:description', descricaoOg, true)
@@ -125,6 +120,18 @@ export default function PropertyDetail() {
     ? imagens 
     : (imagem ? [imagem] : [])
 
+  const sliderSettings = {
+    dots: true,
+    arrows: false,
+    infinite: listaImagens.length > 1,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: listaImagens.length > 1,
+    fade: true,
+    afterChange: setFotoAtual
+  }
+
   const caracteristicasList = caracteristicas
     ? caracteristicas.split(',').map(c => c.trim()).filter(Boolean)
     : []
@@ -139,17 +146,45 @@ export default function PropertyDetail() {
       {/* Galeria — usa imagens da API, com fallback */}
       <section className="relative h-[60vh] md:h-[80vh]">
         {listaImagens.length > 0 ? (
-          <SliderComponent {...sliderSettings} className="h-full">
-            {listaImagens.map((foto, index) => (
-              <div key={index} className="h-[60vh] md:h-[80vh] outline-none">
-                <img
-                  src={foto}
-                  alt={`${nome} - Foto ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </SliderComponent>
+          <>
+            <SliderComponent ref={sliderRef} {...sliderSettings} className="h-full">
+              {listaImagens.map((foto, index) => (
+                <div key={index} className="h-[60vh] md:h-[80vh] outline-none">
+                  <img
+                    src={foto}
+                    alt={`${nome} - Foto ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </SliderComponent>
+
+            {listaImagens.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => sliderRef.current?.slickPrev()}
+                  aria-label="Foto anterior"
+                  className="absolute left-4 md:left-8 top-1/2 z-20 -translate-y-1/2 w-12 h-12 rounded-full bg-white/85 text-primary shadow-lg backdrop-blur flex items-center justify-center hover:bg-white transition-colors"
+                >
+                  <ChevronLeft size={28} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => sliderRef.current?.slickNext()}
+                  aria-label="Próxima foto"
+                  className="absolute right-4 md:right-8 top-1/2 z-20 -translate-y-1/2 w-12 h-12 rounded-full bg-white/85 text-primary shadow-lg backdrop-blur flex items-center justify-center hover:bg-white transition-colors"
+                >
+                  <ChevronRight size={28} />
+                </button>
+
+                <div className="absolute bottom-6 right-4 md:right-8 z-20 rounded-full bg-black/55 px-4 py-2 text-sm font-bold text-white backdrop-blur">
+                  {fotoAtual + 1} / {listaImagens.length}
+                </div>
+              </>
+            )}
+          </>
         ) : (
           <div className="w-full h-full bg-light flex items-center justify-center">
             <Square size={64} className="text-gray-200" />
