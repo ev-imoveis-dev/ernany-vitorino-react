@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createImovel } from "../services/imovelService";
 import { getSessao } from "../services/authService";
 import { getUsuarios, getCorretores } from "../services/usuarioService";
+import { formatCurrencyInputBRL, parseCurrencyInputBRL } from "../utils/currency";
 import { criarItemImagem, montarFormDataImovel } from "../utils/imovelFormData";
 
 import {
@@ -79,7 +80,10 @@ export default function Admin() {
 
   function handleChange(e) {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "valor" ? formatCurrencyInputBRL(value) : value,
+    }));
   }
 
   function handleUpload(e) {
@@ -127,8 +131,7 @@ export default function Admin() {
     try {
       const payload = {
         ...form,
-        valor:
-          Number(String(form.valor).replace(/\D/g, "")) || Number(form.valor),
+        valor: parseCurrencyInputBRL(form.valor),
         quartos: form.quartos ? Number(form.quartos) : undefined,
         banheiros: form.banheiros ? Number(form.banheiros) : undefined,
         tamanho: form.tamanho ? Number(form.tamanho) : undefined,
@@ -290,18 +293,14 @@ export default function Admin() {
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
                     name="valor"
                     value={form.valor}
                     onChange={handleChange}
-                    placeholder="Ex.: 350000"
-                    
-                    min="0"
-                    className="w-full bg-light p-3 pr-12 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
+                    placeholder="Ex.: R$ 350.000"
+                    inputMode="numeric"
+                    className="w-full bg-light p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">
-                    R$
-                  </span>
                 </div>
               </div>
             </div>

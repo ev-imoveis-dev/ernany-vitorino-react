@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getImovelById, updateImovel } from '../services/imovelService'
 import { getSessao } from '../services/authService'
 import { getCorretores } from "../services/usuarioService"
+import { formatCurrencyInputBRL, parseCurrencyInputBRL } from '../utils/currency'
 import { criarItemImagem, criarItemImagemExistente, montarFormDataImovel } from '../utils/imovelFormData'
 
 import {
@@ -36,7 +37,7 @@ export default function AdminEditarImovel() {
           referencia: data.referencia ?? '',
           tipo_imovel: data.tipo_imovel ?? '',
           tipo: data.tipo ?? 'venda',
-          valor: data.valor ?? '',
+          valor: formatCurrencyInputBRL(data.valor),
           quartos: data.quartos ?? '',
           banheiros: data.banheiros ?? '',
           tamanho: data.tamanho ?? '',
@@ -88,7 +89,10 @@ export default function AdminEditarImovel() {
 
   function handleChange(e) {
     const { name, value } = e.target
-    setForm(prev => ({ ...prev, [name]: value }))
+    setForm(prev => ({
+      ...prev,
+      [name]: name === 'valor' ? formatCurrencyInputBRL(value) : value,
+    }))
   }
 
   function handleUpload(e) {
@@ -125,7 +129,7 @@ export default function AdminEditarImovel() {
     try {
       const payload = {
         ...form,
-        valor: parseFloat(form.valor),
+        valor: parseCurrencyInputBRL(form.valor),
         quartos: form.quartos ? parseInt(form.quartos) : undefined,
         banheiros: form.banheiros ? parseInt(form.banheiros) : undefined,
         tamanho: form.tamanho ? parseFloat(form.tamanho) : undefined,
@@ -281,11 +285,10 @@ export default function AdminEditarImovel() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Valor (R$) *</label>
                 <div className="relative">
-                  <input type="number" name="valor" value={form.valor} onChange={handleChange}
-                    placeholder="Ex.: 350000" required min="0"
-                    className="w-full bg-light p-3 pr-12 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
+                  <input type="text" name="valor" value={form.valor} onChange={handleChange}
+                    placeholder="Ex.: R$ 350.000" required inputMode="numeric"
+                    className="w-full bg-light p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">R$</span>
                 </div>
               </div>
             </div>

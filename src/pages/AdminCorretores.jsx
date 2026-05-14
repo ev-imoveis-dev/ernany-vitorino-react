@@ -4,22 +4,63 @@ import { ArrowLeft, Mail, Phone, User, Pencil, KeyRound, X, Check } from 'lucide
 import toast from 'react-hot-toast'
 import { getSessao } from '../services/authService'
 import { listarCorretores, atualizarCorretor, enviarNovaSenha } from '../services/corretorService'
+import { formatPhoneBR } from '../utils/phone'
+
+const CORRETORES_CACHE_KEY = 'corretores_cache'
+
+function validarCorretor(form) {
+  const errors = {}
+  const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const celularNumeros = form.celular.replace(/\D/g, '')
+
+  if (!form.nome.trim()) errors.nome = 'Este campo é obrigatório'
+
+  if (!form.email.trim()) {
+    errors.email = 'Este campo é obrigatório'
+  } else if (!emailValido.test(form.email.trim())) {
+    errors.email = 'E-mail inválido'
+  }
+
+  if (!form.celular.trim()) {
+    errors.celular = 'Este campo é obrigatório'
+  } else if (celularNumeros.length < 10) {
+    errors.celular = 'Celular inválido'
+  }
+
+  return errors
+}
 
 function ModalEditar({ corretor, onClose, onSalvo }) {
   const [form, setForm] = useState({
     nome: corretor.nome || '',
     email: corretor.email || '',
-    celular: corretor.celular || '',
+    celular: formatPhoneBR(corretor.celular || ''),
   })
+  const [formErrors, setFormErrors] = useState({})
   const [salvando, setSalvando] = useState(false)
 
   function handleChange(e) {
     const { name, value } = e.target
-    setForm(prev => ({ ...prev, [name]: value }))
+    setForm(prev => ({
+      ...prev,
+      [name]: name === 'celular' ? formatPhoneBR(value) : value,
+    }))
+    setFormErrors(prev => ({ ...prev, [name]: '' }))
+  }
+
+  function handleBlur(e) {
+    const { name } = e.target
+    const errors = validarCorretor(form)
+    setFormErrors(prev => ({ ...prev, [name]: errors[name] || '' }))
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
+    const errors = validarCorretor(form)
+    setFormErrors(errors)
+
+    if (Object.keys(errors).length > 0) return
+
     setSalvando(true)
     try {
       await atualizarCorretor(corretor.id, form)
@@ -32,6 +73,10 @@ function ModalEditar({ corretor, onClose, onSalvo }) {
     }
   }
 
+  const fieldClass = (name) => `w-full bg-light border rounded-xl pl-10 pr-4 py-3.5 focus:outline-none focus:border-secondary transition-colors ${
+    formErrors[name] ? 'border-red-400' : 'border-gray-200'
+  }`
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
@@ -42,7 +87,7 @@ function ModalEditar({ corretor, onClose, onSalvo }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Nome Completo</label>
             <div className="relative">
@@ -52,11 +97,14 @@ function ModalEditar({ corretor, onClose, onSalvo }) {
                 name="nome"
                 value={form.nome}
                 onChange={handleChange}
-                required
+                onBlur={handleBlur}
                 placeholder="Nome completo"
-                className="w-full bg-light border border-gray-200 rounded-xl pl-10 pr-4 py-3.5 focus:outline-none focus:border-secondary transition-colors"
+                className={fieldClass('nome')}
               />
             </div>
+            {formErrors.nome && (
+              <p className="text-sm text-red-500">{formErrors.nome}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -68,11 +116,14 @@ function ModalEditar({ corretor, onClose, onSalvo }) {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                required
+                onBlur={handleBlur}
                 placeholder="corretor@email.com"
-                className="w-full bg-light border border-gray-200 rounded-xl pl-10 pr-4 py-3.5 focus:outline-none focus:border-secondary transition-colors"
+                className={fieldClass('email')}
               />
             </div>
+            {formErrors.email && (
+              <p className="text-sm text-red-500">{formErrors.email}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -84,10 +135,15 @@ function ModalEditar({ corretor, onClose, onSalvo }) {
                 name="celular"
                 value={form.celular}
                 onChange={handleChange}
+                onBlur={handleBlur}
+                inputMode="numeric"
                 placeholder="(27) 99999-9999"
-                className="w-full bg-light border border-gray-200 rounded-xl pl-10 pr-4 py-3.5 focus:outline-none focus:border-secondary transition-colors"
+                className={fieldClass('celular')}
               />
             </div>
+            {formErrors.celular && (
+              <p className="text-sm text-red-500">{formErrors.celular}</p>
+            )}
           </div>
 
           <div className="flex gap-3 pt-2">
@@ -126,7 +182,11 @@ export default function AdminCorretores() {
     if (sessao.usuario?.papel !== 'admin') { navigate('/admin'); return }
 
     listarCorretores()
-      .then(({ dados }) => setCorretores(dados))
+      .then(({ dados }) => {
+        const lista = Array.isArray(dados) ? dados : []
+        setCorretores(lista)
+        localStorage.setItem(CORRETORES_CACHE_KEY, JSON.stringify(lista))
+      })
       .catch(err => toast.error(err.message))
       .finally(() => setCarregando(false))
   }, [navigate, sessao])
@@ -144,7 +204,11 @@ export default function AdminCorretores() {
   }
 
   function handleSalvo(corretorAtualizado) {
-    setCorretores(prev => prev.map(c => c.id === corretorAtualizado.id ? corretorAtualizado : c))
+    setCorretores(prev => {
+      const atualizados = prev.map(c => c.id === corretorAtualizado.id ? corretorAtualizado : c)
+      localStorage.setItem(CORRETORES_CACHE_KEY, JSON.stringify(atualizados))
+      return atualizados
+    })
     setEditando(null)
   }
 
