@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useReducer } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { getImoveis } from '../services/imovelService'
 import PropertyCard from '../components/PropertyCard'
@@ -87,6 +87,19 @@ const PainelFiltros = ({ filters, onFilter, onLimpar }) => (
   </div>
 )
 
+function filtrosReducer(state, action) {
+  switch (action.type) {
+    case 'SET_FILTER':
+      return { filters: { ...state.filters, [action.name]: action.value }, pagina: 1 }
+    case 'SET_PAGINA':
+      return { ...state, pagina: action.pagina }
+    case 'RESET':
+      return { filters: FILTROS_INICIAIS, pagina: 1 }
+    default:
+      return state
+  }
+}
+
 export default function PropertyList() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -94,21 +107,20 @@ export default function PropertyList() {
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
 
-  const [filters, setFilters] = useState(() => {
+  const [{ filters, pagina }, dispatch] = useReducer(filtrosReducer, null, () => {
     const params = new URLSearchParams(location.search)
     return {
-      tipo: params.get('tipo') || FILTROS_INICIAIS.tipo,
-      tipo_imovel: params.get('tipo_imovel') || FILTROS_INICIAIS.tipo_imovel,
-      localizacao: params.get('localizacao') || FILTROS_INICIAIS.localizacao,
-      quartos: params.get('quartos') || FILTROS_INICIAIS.quartos,
-      ordem: params.get('ordem') || FILTROS_INICIAIS.ordem,
+      filters: {
+        tipo: params.get('tipo') || FILTROS_INICIAIS.tipo,
+        tipo_imovel: params.get('tipo_imovel') || FILTROS_INICIAIS.tipo_imovel,
+        localizacao: params.get('localizacao') || FILTROS_INICIAIS.localizacao,
+        quartos: params.get('quartos') || FILTROS_INICIAIS.quartos,
+        ordem: params.get('ordem') || FILTROS_INICIAIS.ordem,
+      },
+      pagina: parseInt(params.get('pagina') || '1', 10),
     }
   })
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [pagina, setPagina] = useState(() => {
-    const params = new URLSearchParams(location.search)
-    return parseInt(params.get('pagina') || '1', 10)
-  })
 
   useEffect(() => {
     setLoading(true)
@@ -129,7 +141,6 @@ export default function PropertyList() {
     navigate({ search: params.toString() }, { replace: true })
   }, [filters, pagina, navigate])
 
-  useEffect(() => { setPagina(1) }, [filters])
 
 const filtrados = useMemo(() => {
     return imoveis
@@ -152,11 +163,11 @@ const filtrados = useMemo(() => {
   const paginados = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA)
 
   function handleFilter(name, value) {
-    setFilters(prev => ({ ...prev, [name]: value }))
+    dispatch({ type: 'SET_FILTER', name, value })
   }
 
   function limparFiltros() {
-    setFilters(FILTROS_INICIAIS)
+    dispatch({ type: 'RESET' })
   }
 
   if (loading) return (
@@ -250,13 +261,13 @@ const filtrados = useMemo(() => {
             {/* Paginação */}
             {totalPaginas > 1 && (
               <div className="flex items-center justify-center gap-2 mt-12">
-                <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={pagina === 1}
+                <button onClick={() => dispatch({ type: 'SET_PAGINA', pagina: Math.max(1, pagina - 1) })} disabled={pagina === 1}
                   className="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                   <ChevronLeft size={18} />
                 </button>
 
                 {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(num => (
-                  <button key={num} onClick={() => setPagina(num)}
+                  <button key={num} onClick={() => dispatch({ type: 'SET_PAGINA', pagina: num })}
                     className={cn('w-10 h-10 rounded-xl text-sm font-bold transition-all',
                       pagina === num
                         ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -266,7 +277,7 @@ const filtrados = useMemo(() => {
                   </button>
                 ))}
 
-                <button onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}
+                <button onClick={() => dispatch({ type: 'SET_PAGINA', pagina: Math.min(totalPaginas, pagina + 1) })} disabled={pagina === totalPaginas}
                   className="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                   <ChevronRight size={18} />
                 </button>

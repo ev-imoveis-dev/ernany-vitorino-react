@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { getImoveis } from '../services/imovelService'
 
-// params must be stable (compute via useMemo at call site if derived from state)
 export function useFetchImoveis(params) {
   const [imoveis, setImoveis] = useState([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
+
+  const paramsKey = JSON.stringify(params ?? null)
 
   useEffect(() => {
     let cancelled = false
@@ -15,7 +16,7 @@ export function useFetchImoveis(params) {
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [paramsKey])
 
   return { imoveis, setImoveis, loading, erro }
 }

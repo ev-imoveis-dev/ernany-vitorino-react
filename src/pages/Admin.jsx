@@ -1,10 +1,12 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createImovel } from "../services/imovelService";
-import { getSessao } from "../services/authService";
-import { getUsuarios, getCorretores } from "../services/usuarioService";
-import { formatCurrencyInputBRL, parseCurrencyInputBRL } from "../utils/currency";
-import { criarItemImagem, montarFormDataImovel } from "../utils/imovelFormData";
+import { getCorretores } from "../services/usuarioService";
+import { parseCurrencyInputBRL } from "../utils/currency";
+import { montarFormDataImovel } from "../utils/imovelFormData";
+import { useSessionRole } from "../hooks/useSessionRole";
+import { useImovelForm, camposIniciais } from "../hooks/useImovelForm";
+import { useAsyncStatus } from "../hooks/useAsyncStatus";
 
 import {
   BedDouble,
@@ -20,40 +22,15 @@ import {
   LogOut,
 } from "lucide-react";
 
-const camposIniciais = {
-  nome: "",
-  referencia: "",
-  tipo_imovel: "",
-  tipo: "venda",
-  valor: "",
-  quartos: "",
-  banheiros: "",
-  tamanho: "",
-  vagas: "",
-  descricao: "",
-  caracteristicas: "",
-  corretor: "",
-  localizacao: "",
-  imagens: [],
-};
-
 export default function Admin() {
   const navigate = useNavigate();
-  const sessao = useMemo(() => getSessao(), []);
-  const papel = String(sessao?.usuario?.papel || "").toLowerCase();
-  const usuarioId =
-    sessao?.usuario?.id !== undefined && sessao?.usuario?.id !== null
-      ? String(sessao.usuario.id)
-      : "";
-  const prefixo = papel === "admin" ? "/admin" : "/corretor";
+  const { sessao, papel, usuarioId, prefixo } = useSessionRole();
+  const { form, setForm, handleChange, handleUpload, handleRemoveFoto } = useImovelForm(camposIniciais);
+  const { enviando, sucesso, erro, iniciarEnvio, aoSucesso, aoErro, limparErro, reset } = useAsyncStatus();
 
-  const [form, setForm] = useState(camposIniciais);
-  const [enviando, setEnviando] = useState(false);
-  const [sucesso, setSucesso] = useState(false);
-  const [erro, setErro] = useState("");
   const [corretores, setCorretores] = useState([]);
-  const [corretorSelecionado, setCorretorSelecionado] = useState(papel === 'admin' ? '' : usuarioId)
-    const nomeUsuario = sessao?.usuario?.nome;
+  const [corretorSelecionado, setCorretorSelecionado] = useState(papel === 'admin' ? '' : usuarioId);
+  const nomeUsuario = sessao?.usuario?.nome;
 
 
   useEffect(() => {
@@ -76,45 +53,11 @@ export default function Admin() {
       setCorretorSelecionado(usuarioId);
       setForm((prev) => ({ ...prev, corretor: usuarioId }));
     }
-  }, [papel, usuarioId]);
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: name === "valor" ? formatCurrencyInputBRL(value) : value,
-    }));
-  }
-
-  function handleUpload(e) {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-
-    if (form.imagens.length + files.length > 20) {
-      setErro("Você pode enviar no máximo 20 fotos por imóvel.");
-      return;
-    }
-
-    files.forEach(file => {
-      setForm((prev) => ({
-        ...prev,
-        imagens: [...prev.imagens, criarItemImagem(file)]
-      }));
-    });
-  }
-
-  function handleRemoveFoto(index) {
-    setForm(prev => ({
-      ...prev,
-      imagens: prev.imagens.filter((_, i) => i !== index)
-    }));
-  }
+  }, [papel, usuarioId, setForm]);
 
   function handleLimpar() {
     setForm(camposIniciais);
-    setSucesso(false);
-    setErro("");
-
+    reset();
     if (papel === "admin") {
       setCorretorSelecionado("");
     } else {
@@ -125,9 +68,8 @@ export default function Admin() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setErro("");
-    setSucesso(false);
-    setEnviando(true);
+    limparErro();
+    iniciarEnvio();
     try {
       const payload = {
         ...form,
@@ -137,21 +79,14 @@ export default function Admin() {
         tamanho: form.tamanho ? Number(form.tamanho) : undefined,
         vagas: form.vagas ? Number(form.vagas) : undefined,
       };
-
       const extras = {
         corretor: papel === 'corretor' ? usuarioId : (corretorSelecionado?.trim() || null),
-      }
-
+      };
       await createImovel(montarFormDataImovel(payload, extras));
-      setSucesso(true);
-      setTimeout(() => {
-        navigate(`${prefixo}/imoveis`);
-      }, 700);
+      aoSucesso();
+      setTimeout(() => navigate(`${prefixo}/imoveis`), 700);
     } catch (err) {
-      console.error("Erro ao criar imóvel:", err);
-      setErro(err?.message || "Erro ao cadastrar imóvel. Tente novamente.");
-    } finally {
-      setEnviando(false);
+      aoErro(err?.message || "Erro ao cadastrar imóvel. Tente novamente.");
     }
   }
 
@@ -176,7 +111,7 @@ export default function Admin() {
         {sucesso && (
           <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl p-4 mb-6 flex items-center justify-between">
             <span className="font-medium">Imóvel cadastrado com sucesso!</span>
-            <button onClick={() => setSucesso(false)}>
+            <button onClick={reset}>
               <X size={18} />
             </button>
           </div>
@@ -185,7 +120,7 @@ export default function Admin() {
         {erro && (
           <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 mb-6 flex items-center justify-between">
             <span>{erro}</span>
-            <button onClick={() => setErro("")}>
+            <button onClick={limparErro}>
               <X size={18} />
             </button>
           </div>
@@ -218,7 +153,7 @@ export default function Admin() {
                   type="file"
                   accept="image/*"
                   multiple
-                  onChange={handleUpload}
+                  onChange={e => handleUpload(e, () => aoErro('Você pode enviar no máximo 20 fotos por imóvel.'))}
                   className="hidden"
                 />
                 <Image size={32} className="text-gray-300 mx-auto mb-2" />

@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getImovelById, updateImovel } from '../services/imovelService'
-import { getSessao } from '../services/authService'
 import { getCorretores } from "../services/usuarioService"
 import { formatCurrencyInputBRL, parseCurrencyInputBRL } from '../utils/currency'
-import { criarItemImagem, criarItemImagemExistente, montarFormDataImovel } from '../utils/imovelFormData'
+import { criarItemImagemExistente, montarFormDataImovel } from '../utils/imovelFormData'
+import { useSessionRole } from '../hooks/useSessionRole'
+import { useImovelForm } from '../hooks/useImovelForm'
+import { useAsyncStatus } from '../hooks/useAsyncStatus'
 
 import {
   BedDouble, Bath, Square, Car, User, MapPin,
@@ -14,18 +16,11 @@ import {
 export default function AdminEditarImovel() {
   const navigate = useNavigate()
   const { id } = useParams()
+  const { papel, usuarioId, prefixo } = useSessionRole()
+  const { form, setForm, handleChange, handleUpload, handleRemoveFoto } = useImovelForm(null)
+  const { enviando, sucesso, erro, iniciarEnvio, aoSucesso, aoErro, limparErro, reset } = useAsyncStatus()
 
-  const sessao = useMemo(() => getSessao(), [])
-  const papel = String(sessao?.usuario?.papel || '').toLowerCase()
-  const usuarioId = String(sessao?.usuario?.id || '')
-  const prefixo = papel === 'admin' ? '/admin' : '/corretor'
-
-  const [form, setForm] = useState(null)
-  const [enviando, setEnviando] = useState(false)
-  const [sucesso, setSucesso] = useState(false)
-  const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(true)
-  const nomeUsuario = sessao?.usuario?.nome;
   const [corretores, setCorretores] = useState([])
   const [corretorSelecionado, setCorretorSelecionado] = useState('')
 
@@ -67,54 +62,19 @@ export default function AdminEditarImovel() {
           setForm(prev => ({ ...prev, corretor: usuarioId }))
         }
       } catch {
-        setErro('Não foi possível carregar os dados do imóvel.')
+        aoErro('Não foi possível carregar os dados do imóvel.')
       } finally {
         setLoading(false)
       }
     }
 
     carregar()
-  }, [id, papel, usuarioId])
-
-  function handleChange(e) {
-    const { name, value } = e.target
-    setForm(prev => ({
-      ...prev,
-      [name]: name === 'valor' ? formatCurrencyInputBRL(value) : value,
-    }))
-  }
-
-  function handleUpload(e) {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-
-    if (form.imagens.length + files.length > 20) {
-      setErro("Você pode enviar no máximo 20 fotos por imóvel.");
-      return;
-    }
-
-    files.forEach(file => {
-      setForm((prev) => ({
-        ...prev,
-        imagens: [...prev.imagens, criarItemImagem(file)]
-      }));
-    });
-  }
-
-  function handleRemoveFoto(index) {
-    setForm(prev => ({
-      ...prev,
-      imagens: prev.imagens.filter((_, i) => i !== index)
-    }));
-  }
-
+  }, [id, papel, usuarioId, setForm, aoErro])
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setEnviando(true)
-    setErro('')
-    setSucesso(false)
-
+    limparErro()
+    iniciarEnvio()
     try {
       const payload = {
         ...form,
@@ -124,24 +84,14 @@ export default function AdminEditarImovel() {
         tamanho: form.tamanho ? parseFloat(form.tamanho) : undefined,
         vagas: form.vagas ? parseInt(form.vagas) : undefined,
       }
-
       const extras = papel === 'admin'
-        ? {
-            corretor: corretorSelecionado !== ''
-              ? Number(corretorSelecionado)
-              : undefined
-          }
+        ? { corretor: corretorSelecionado !== '' ? Number(corretorSelecionado) : undefined }
         : {}
-
       await updateImovel(id, montarFormDataImovel(payload, extras))
-
-      setSucesso(true)
+      aoSucesso()
       window.scrollTo(0, 0)
-
     } catch (err) {
-      setErro(err.message || 'Erro ao atualizar imóvel. Tente novamente.')
-    } finally {
-      setEnviando(false)
+      aoErro(err.message || 'Erro ao atualizar imóvel. Tente novamente.')
     }
   }
 
@@ -179,14 +129,14 @@ export default function AdminEditarImovel() {
         {sucesso && (
           <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl p-4 mb-6 flex items-center justify-between">
             <span className="font-medium">Imóvel atualizado com sucesso!</span>
-            <button onClick={() => setSucesso(false)}><X size={18} /></button>
+            <button onClick={reset}><X size={18} /></button>
           </div>
         )}
 
         {erro && (
           <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 mb-6 flex items-center justify-between">
             <span>{erro}</span>
-            <button onClick={() => setErro('')}><X size={18} /></button>
+            <button onClick={limparErro}><X size={18} /></button>
           </div>
         )}
 
@@ -214,7 +164,7 @@ export default function AdminEditarImovel() {
                   type="file"
                   accept="image/*"
                   multiple
-                  onChange={handleUpload}
+                  onChange={e => handleUpload(e, () => aoErro('Você pode enviar no máximo 20 fotos por imóvel.'))}
                   className="hidden"
                 />
                 <Image size={32} className="text-gray-300 mx-auto mb-2" />
