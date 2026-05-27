@@ -1,55 +1,24 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { getImoveis, deleteImovel } from '../services/imovelService'
+import { deleteImovel } from '../services/imovelService'
 import { Pencil, Trash2, ArrowLeft, Home, ChevronLeft, ChevronRight } from 'lucide-react'
-import { getSessao } from '../services/authService'
+import { useFetchImoveis } from '../hooks/useFetchImoveis'
+import { useSessionRole } from '../hooks/useSessionRole'
 
 export default function AdminImoveis() {
   const navigate = useNavigate()
-  const [imoveis, setImoveis] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [erro, setErro] = useState(null)
+  const { sessao, papel, prefixo } = useSessionRole()
   const [confirmando, setConfirmando] = useState(null)
   const [buscaRef, setBuscaRef] = useState('')
   const [pagina, setPagina] = useState(1)
-
-  useEffect(() => { setPagina(1) }, [buscaRef])
   const POR_PAGINA = 10
 
-  const sessao = useMemo(() => getSessao(), [])
-  const papel = String(sessao?.usuario?.papel || '').toLowerCase()
-  const prefixo = papel === 'admin' ? '/admin' : '/corretor'
-
-  useEffect(() => {
-    if (!sessao) {
-      navigate('/login')
-      return
-    }
-
-    const papel = String(sessao.usuario?.papel || '').toLowerCase()
-    const usuarioId = sessao.usuario?.id
-
-    setLoading(true)
-    setErro(null)
-
-    const carregar = async () => {
-      try {
-        const dados = papel === 'corretor'
-          ? await getImoveis({ corretorId: usuarioId })
-          : await getImoveis()
-        setImoveis(dados || [])
-      } catch (e) {
-        setErro(papel === 'corretor'
-          ? 'Não foi possível carregar os imóveis do corretor.'
-          : 'Não foi possível carregar os imóveis.')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    carregar()
-  }, [navigate, sessao]) 
+  const fetchParams = useMemo(
+    () => papel === 'corretor' ? { corretorId: sessao?.usuario?.id } : undefined,
+    [papel, sessao]
+  )
+  const { imoveis, setImoveis, loading, erro } = useFetchImoveis(fetchParams)
 
   async function handleExcluir(id) {
     try {
@@ -110,14 +79,14 @@ export default function AdminImoveis() {
               type="text"
               placeholder="Buscar por código de referência..."
               value={buscaRef}
-              onChange={e => setBuscaRef(e.target.value)}
+              onChange={e => { setBuscaRef(e.target.value); setPagina(1) }}
               className="w-full bg-light border border-gray-100 rounded-xl px-4 py-3 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
             </span>
             {buscaRef && (
-              <button onClick={() => setBuscaRef('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => { setBuscaRef(''); setPagina(1) }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">✕</button>
             )}
           </div>
         </div>

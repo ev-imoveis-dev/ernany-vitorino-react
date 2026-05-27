@@ -3,15 +3,7 @@ import { MapPin, Phone, Mail, Instagram, Facebook, MessageCircle } from 'lucide-
 import toast from 'react-hot-toast'
 import { useConfig } from '../context/ConfigContext'
 import { enviarContato } from '../services/contatoService'
-
-function formatarTelefone(value) {
-  const numeros = String(value ?? '').replace(/\D/g, '').slice(0, 11)
-
-  if (numeros.length <= 2) return numeros
-  if (numeros.length <= 6) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`
-  if (numeros.length <= 10) return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`
-  return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`
-}
+import { formatPhoneBR } from '../utils/phone'
 
 function validarFormularioContato(formData) {
   const errors = {}
@@ -56,7 +48,7 @@ const Contact = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    const valorTratado = name === 'telefone' ? formatarTelefone(value) : value
+    const valorTratado = name === 'telefone' ? formatPhoneBR(value) : value
 
     setFormData(prev => ({ ...prev, [name]: valorTratado }))
     setFormErrors(prev => ({ ...prev, [name]: '' }))

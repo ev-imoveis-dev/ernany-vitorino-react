@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigation } from 'lucide-react'
 import Map from '../components/Map'
+import { useConfig } from '../context/ConfigContext'
 
 const COORDS = { lat: -20.6750, lng: -40.5007 }
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333';
 
 const fotos = [
   'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
@@ -15,14 +14,8 @@ const fotos = [
 
 
 export default function Localizacao() {
-  const [config, setConfig] = useState(null)
+  const config = useConfig()
 
-  useEffect(() => {
-    fetch(`${API_URL}/api/configuracoes`)
-      .then(res => res.json())
-      .then(json => { if (json.sucesso) setConfig(json.data) })
-      .catch(err => console.error('Erro ao carregar configurações:', err))
-  }, [])
   function abrirMaps() {
     window.open(
       `https://www.google.com/maps/dir/?api=1&destination=${COORDS.lat},${COORDS.lng}`,

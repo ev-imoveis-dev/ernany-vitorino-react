@@ -1,12 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Mail, Phone, User, Pencil, KeyRound, X, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { getSessao } from '../services/authService'
-import { listarCorretores, atualizarCorretor, enviarNovaSenha } from '../services/corretorService'
+import { atualizarCorretor, enviarNovaSenha } from '../services/corretorService'
 import { formatPhoneBR } from '../utils/phone'
-
-const CORRETORES_CACHE_KEY = 'corretores_cache'
+import { useCorretores } from '../hooks/useCorretores'
+import { useForm } from '../hooks/useForm'
 
 function validarCorretor(form) {
   const errors = {}
@@ -31,34 +30,16 @@ function validarCorretor(form) {
 }
 
 function ModalEditar({ corretor, onClose, onSalvo }) {
-  const [form, setForm] = useState({
-    nome: corretor.nome || '',
-    email: corretor.email || '',
-    celular: formatPhoneBR(corretor.celular || ''),
-  })
-  const [formErrors, setFormErrors] = useState({})
+  const { form, errors: formErrors, handleChange, handleBlur, validate } = useForm(
+    { nome: corretor.nome || '', email: corretor.email || '', celular: formatPhoneBR(corretor.celular || '') },
+    validarCorretor,
+    { celular: formatPhoneBR }
+  )
   const [salvando, setSalvando] = useState(false)
-
-  function handleChange(e) {
-    const { name, value } = e.target
-    setForm(prev => ({
-      ...prev,
-      [name]: name === 'celular' ? formatPhoneBR(value) : value,
-    }))
-    setFormErrors(prev => ({ ...prev, [name]: '' }))
-  }
-
-  function handleBlur(e) {
-    const { name } = e.target
-    const errors = validarCorretor(form)
-    setFormErrors(prev => ({ ...prev, [name]: errors[name] || '' }))
-  }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    const errors = validarCorretor(form)
-    setFormErrors(errors)
-
+    const errors = validate()
     if (Object.keys(errors).length > 0) return
 
     setSalvando(true)
@@ -170,26 +151,9 @@ function ModalEditar({ corretor, onClose, onSalvo }) {
 
 export default function AdminCorretores() {
   const navigate = useNavigate()
-  const sessao = useMemo(() => getSessao(), [])
-
-  const [corretores, setCorretores] = useState([])
-  const [carregando, setCarregando] = useState(true)
+  const { corretores, setCorretores, carregando } = useCorretores()
   const [editando, setEditando] = useState(null)
   const [enviandoSenha, setEnviandoSenha] = useState(null)
-
-  useEffect(() => {
-    if (!sessao) { navigate('/login'); return }
-    if (sessao.usuario?.papel !== 'admin') { navigate('/admin'); return }
-
-    listarCorretores()
-      .then(({ dados }) => {
-        const lista = Array.isArray(dados) ? dados : []
-        setCorretores(lista)
-        localStorage.setItem(CORRETORES_CACHE_KEY, JSON.stringify(lista))
-      })
-      .catch(err => toast.error(err.message))
-      .finally(() => setCarregando(false))
-  }, [navigate, sessao])
 
   async function handleNovaSenha(corretor) {
     setEnviandoSenha(corretor.id)
@@ -204,11 +168,7 @@ export default function AdminCorretores() {
   }
 
   function handleSalvo(corretorAtualizado) {
-    setCorretores(prev => {
-      const atualizados = prev.map(c => c.id === corretorAtualizado.id ? corretorAtualizado : c)
-      localStorage.setItem(CORRETORES_CACHE_KEY, JSON.stringify(atualizados))
-      return atualizados
-    })
+    setCorretores(prev => prev.map(c => c.id === corretorAtualizado.id ? corretorAtualizado : c))
     setEditando(null)
   }
 

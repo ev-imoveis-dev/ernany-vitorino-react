@@ -1,7 +1,8 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Home, List, LogOut } from 'lucide-react'
-import { encerrarSessao, getSessao } from '../services/authService'
+import { encerrarSessao } from '../services/authService'
+import { useSessionRole } from '../hooks/useSessionRole'
 
 const cards = [
   {
@@ -32,7 +33,7 @@ const cards = [
 
 export default function CorretorDashboard() {
   const navigate = useNavigate()
-  const sessao = getSessao()
+  const { sessao } = useSessionRole()
   const nome = sessao?.usuario?.nome || 'Corretor'
 
   function handleCard(rota, titulo) {

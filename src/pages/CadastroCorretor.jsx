@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Mail, User, Phone, CheckCircle2, X } from 'lucide-react'
 import { cadastrarCorretor } from '../services/corretorService'
+import { formatPhoneBR } from '../utils/phone'
 
 const CadastroCorretor = () => {
   const navigate = useNavigate()
@@ -18,7 +19,10 @@ const CadastroCorretor = () => {
 
   function handleChange(e) {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'celular' ? formatPhoneBR(value) : value,
+    }))
   }
 
   async function handleSubmit(e) {
@@ -143,6 +147,7 @@ const CadastroCorretor = () => {
                         type="tel"
                         name="celular"
                         required
+                        inputMode="numeric"
                         value={formData.celular}
                         onChange={handleChange}
                         placeholder="(27) 99999-9999"

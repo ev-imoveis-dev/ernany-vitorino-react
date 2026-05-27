@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Phone, Mail, MapPin, Instagram, Facebook } from 'lucide-react'
-import { getSessao } from '../services/authService'
 import api from '../services/api'
 import { formatPhoneBR } from '../utils/phone'
 
@@ -86,23 +85,6 @@ export default function AdminConfiguracoes() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
 
-  useEffect(() => {
-    const sessao = getSessao()
-
-    if (!sessao) {
-      navigate('/login')
-      return
-    }
-
-    const papel = String(sessao.usuario?.papel || '').toLowerCase()
-    if (papel !== 'admin') {
-      navigate('/admin/imoveis')
-      return
-    }
-
-    fetchConfiguracoes()
-  }, [navigate])
-
   async function fetchConfiguracoes() {
     try {
       setCarregando(true)
@@ -119,6 +101,11 @@ export default function AdminConfiguracoes() {
       setCarregando(false)
     }
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchConfiguracoes()
+  }, [])
 
   function handleChange(e) {
     const { name, value } = e.target
