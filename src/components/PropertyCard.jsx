@@ -8,6 +8,7 @@ const PropertyCard = ({ property }) => {
   const {
     id,
     nome,
+    imagens,
     imagem,
     tipo,
     valor,
@@ -19,6 +20,11 @@ const PropertyCard = ({ property }) => {
     referencia
   } = property
 
+  // Usa a primeira imagem do array ou a imagem única (legado)
+  const fotoExibicao = Array.isArray(imagens) && imagens.length > 0 
+    ? imagens[0] 
+    : imagem
+
   return (
     <motion.div
       whileHover={{ y: -10 }}
@@ -26,9 +32,9 @@ const PropertyCard = ({ property }) => {
     >
       {/* Imagem */}
       <Link to={`/imoveis/${id}`} className="block relative aspect-[4/3] overflow-hidden">
-        {imagem ? (
+        {fotoExibicao ? (
           <img
-            src={imagem}
+            src={fotoExibicao}
             alt={nome}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             loading="lazy"

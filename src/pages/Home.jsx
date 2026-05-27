@@ -116,7 +116,7 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="relative group">
-              <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl bg-white p-3 border border-gray-100 relative z-10">
+              {/* <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl bg-white p-3 border border-gray-100 relative z-10">
                 <div className="w-full h-full rounded-2xl overflow-hidden bg-gray-50">
                   <img
                     src={ernanyImg}
@@ -131,10 +131,10 @@ const Home = () => {
                 <span className="text-primary/80 font-bold uppercase tracking-widest text-xs leading-tight">
                   Anos de <br /> Experiência
                 </span>
-              </div>
+              </div> */}
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-8 lg:col-span-2 max-w-2xl mx-auto w-full">
               <div>
                 <span className="text-secondary font-bold uppercase tracking-widest text-sm mb-4 block">
                   Sobre Mim

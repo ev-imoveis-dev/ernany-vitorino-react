@@ -16,6 +16,23 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
+*.env
+
+# Chaves e credenciais
+*.key
+*.pem
+*.p12
+*.pfx
+*_rsa
+*_dsa
+secrets/
+secret.json
+credentials.json
+
+# OS files
+Thumbs.db
 
 # Editor directories and files
 .vscode/*
@@ -27,3 +44,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+CLAUDE.md

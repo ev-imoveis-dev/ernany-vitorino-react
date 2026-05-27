@@ -143,11 +143,17 @@ export default function AdminImoveis() {
             <p className="text-sm text-gray-400 mb-4">{imoveisFiltrados.length} imóvel{imoveisFiltrados.length !== 1 ? 'is' : ''} encontrado{imoveisFiltrados.length !== 1 ? 's' : ''}</p>
             <div className="space-y-4">
               {paginados.map(item => (
+                (() => {
+                  const fotoExibicao = Array.isArray(item.imagens) && item.imagens.length > 0
+                    ? item.imagens[0]
+                    : item.imagem
+
+                  return (
                 <div key={item.id}
                   className="bg-light rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center hover:shadow-md transition-shadow">
 
                   <img
-                    src={item.imagem || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=200&q=80'}
+                    src={fotoExibicao || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=200&q=80'}
                     alt={item.nome}
                     className="w-full sm:w-32 h-24 object-cover rounded-xl flex-shrink-0"
                     onError={e => e.target.src = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=200&q=80'}
@@ -210,6 +216,8 @@ export default function AdminImoveis() {
                     )}
                   </div>
                 </div>
+                  )
+                })()
               ))}
             </div>
 
