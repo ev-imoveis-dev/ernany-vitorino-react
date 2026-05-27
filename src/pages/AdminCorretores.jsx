@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Mail, Phone, User, Pencil, KeyRound, X, Check } from 'lucide-react'
+import { ArrowLeft, Mail, Phone, User, Pencil, KeyRound, X, Check, UserPlus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { atualizarCorretor, enviarNovaSenha } from '../services/corretorService'
 import { formatPhoneBR } from '../utils/phone'
@@ -193,6 +193,13 @@ export default function AdminCorretores() {
           <p className="text-gray-500 text-lg">
             Gerencie os corretores cadastrados no sistema.
           </p>
+          <button
+            onClick={() => navigate('/cadastro-corretor')}
+            className="mt-6 inline-flex items-center gap-2 bg-primary text-white font-bold px-8 py-3.5 rounded-xl hover:bg-secondary hover:text-primary transition-all text-sm uppercase tracking-widest shadow-lg shadow-primary/10"
+          >
+            <UserPlus size={18} />
+            Cadastrar Corretor
+          </button>
         </div>
 
         {carregando ? (

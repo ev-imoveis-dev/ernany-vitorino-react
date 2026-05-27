@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Home, List, Settings, LogOut, UserPlus, Users } from 'lucide-react'
+import { Home, List, Settings, LogOut, Users } from 'lucide-react'
 import { encerrarSessao } from '../services/authService'
 
 const cards = [
@@ -17,14 +17,6 @@ const cards = [
     titulo: 'Cadastrar Imóvel',
     descricao: 'Adicione um novo imóvel ao sistema.',
     rota: '/admin/cadastrar',
-    cor: 'text-secondary',
-    bg: 'bg-light',
-  },
-  {
-    icon: UserPlus,
-    titulo: 'Cadastrar Corretor',
-    descricao: 'Adicione um novo corretor ao painel.',
-    rota: '/cadastro-corretor',
     cor: 'text-secondary',
     bg: 'bg-light',
   },
