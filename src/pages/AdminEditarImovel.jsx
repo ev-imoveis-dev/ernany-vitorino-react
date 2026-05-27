@@ -30,8 +30,14 @@ export default function AdminEditarImovel() {
   const [corretorSelecionado, setCorretorSelecionado] = useState('')
 
   useEffect(() => {
-    getImovelById(id)
-      .then(data => {
+    const carregar = async () => {
+      try {
+        const data = await getImovelById(id)
+
+        const corretorDoImovel = data.corretor != null && data.corretor !== ''
+          ? String(data.corretor)
+          : ''
+
         setForm({
           nome: data.nome ?? '',
           referencia: data.referencia ?? '',
@@ -50,42 +56,25 @@ export default function AdminEditarImovel() {
             .map(criarItemImagemExistente),
         })
 
-        setCorretorSelecionado(
-          data.corretor !== null && data.corretor !== undefined
-            ? String(data.corretor)
-            : ''
-        )
-      })
-      .catch(() => setErro('Não foi possível carregar os dados do imóvel.'))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  useEffect(() => {
-    if (papel === "admin") {
-      getCorretores()
-        .then((lista) => {
-          const dados = Array.isArray(lista)
-            ? lista
-            : (lista?.dados ?? lista ?? []);
-
-          const apenasCorretores = dados.filter(
-            (u) => ["corretor", "admin"].includes(String(u.papel || "").toLowerCase())
-          );
-
-          setCorretores(apenasCorretores);
-
-          if (!corretorSelecionado && apenasCorretores.length > 0) {
-            setCorretorSelecionado(String(apenasCorretores[0].id))
-          }
-        })
-        .catch((err) => {
-          console.error("Erro ao carregar usuários:", err);
-        });
-    } else {
-      setCorretorSelecionado(usuarioId);
-      setForm((prev) => ({ ...prev, corretor: usuarioId }));
+        if (papel === 'admin') {
+          const lista = await getCorretores()
+          setCorretores(lista)
+          setCorretorSelecionado(
+            corretorDoImovel || (lista.length > 0 ? String(lista[0].id) : '')
+          )
+        } else {
+          setCorretorSelecionado(usuarioId)
+          setForm(prev => ({ ...prev, corretor: usuarioId }))
+        }
+      } catch {
+        setErro('Não foi possível carregar os dados do imóvel.')
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [papel, usuarioId]);
+
+    carregar()
+  }, [id, papel, usuarioId])
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -138,9 +127,9 @@ export default function AdminEditarImovel() {
 
       const extras = papel === 'admin'
         ? {
-            corretor: corretorSelecionado === ''
-              ? Number(usuarioId)
-              : Number(corretorSelecionado)
+            corretor: corretorSelecionado !== ''
+              ? Number(corretorSelecionado)
+              : undefined
           }
         : {}
 

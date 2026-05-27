@@ -17,7 +17,7 @@ export function montarFormDataImovel(form, extras = {}) {
   const { imagens = [], ...campos } = form
 
   Object.entries({ ...campos, ...extras }).forEach(([chave, valor]) => {
-    if (valor !== undefined && valor !== null && valor !== '') {
+    if (valor !== undefined && valor !== null && valor !== '' && !Number.isNaN(valor)) {
       formData.append(chave, valor)
     }
   })
