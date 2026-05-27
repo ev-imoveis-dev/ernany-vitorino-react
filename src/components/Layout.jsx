@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
-// import WhatsAppButton from './WhatsAppButton'
+import WhatsAppButton from './WhatsAppButton'
 import { motion } from 'framer-motion'
 
 const ALTURA_HEADER = 80
@@ -39,7 +39,7 @@ const Layout = () => {
         </motion.div>
       </main>
       <Footer />
-      {/* <WhatsAppButton /> */}
+      <WhatsAppButton />
     </div>
   )
 }

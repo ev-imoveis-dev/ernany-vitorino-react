@@ -1,14 +1,10 @@
 import React, { useState } from 'react'
 import { MapPin, Phone, Mail, Instagram, Facebook, MessageCircle } from 'lucide-react'
-import toast from 'react-hot-toast'
 import { useConfig } from '../context/ConfigContext'
-import { enviarContato } from '../services/contatoService'
-import { formatPhoneBR } from '../utils/phone'
 
 function validarFormularioContato(formData) {
   const errors = {}
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const telefoneNumeros = formData.telefone.replace(/\D/g, '')
 
   if (!formData.nome.trim()) errors.nome = 'Este campo é obrigatório'
 
@@ -16,12 +12,6 @@ function validarFormularioContato(formData) {
     errors.email = 'Este campo é obrigatório'
   } else if (!emailValido.test(formData.email.trim())) {
     errors.email = 'E-mail inválido'
-  }
-
-  if (!formData.telefone.trim()) {
-    errors.telefone = 'Este campo é obrigatório'
-  } else if (telefoneNumeros.length < 10) {
-    errors.telefone = 'Telefone inválido'
   }
 
   if (!formData.assunto.trim()) errors.assunto = 'Este campo é obrigatório'
@@ -33,7 +23,6 @@ function validarFormularioContato(formData) {
 const camposIniciais = {
   nome: '',
   email: '',
-  telefone: '',
   assunto: 'Comprar Imóvel',
   mensagem: '',
 }
@@ -44,13 +33,10 @@ const Contact = () => {
   const config = useConfig()
   const [formData, setFormData] = useState(camposIniciais)
   const [formErrors, setFormErrors] = useState({})
-  const [carregando, setCarregando] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    const valorTratado = name === 'telefone' ? formatPhoneBR(value) : value
-
-    setFormData(prev => ({ ...prev, [name]: valorTratado }))
+    setFormData(prev => ({ ...prev, [name]: value }))
     setFormErrors(prev => ({ ...prev, [name]: '' }))
   }
 
@@ -60,25 +46,25 @@ const Contact = () => {
     setFormErrors(prev => ({ ...prev, [name]: errors[name] || '' }))
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
 
     const errors = validarFormularioContato(formData)
     setFormErrors(errors)
-
     if (Object.keys(errors).length > 0) return
 
-    setCarregando(true)
-    try {
-      await enviarContato(formData)
-      toast.success('Mensagem enviada! Em breve entraremos em contato.')
-      setFormData(camposIniciais)
-      setFormErrors({})
-    } catch (err) {
-      toast.error(err.message)
-    } finally {
-      setCarregando(false)
-    }
+    const raw = config?.telefone1?.replace(/\D/g, '')
+    const numero = raw ? (raw.startsWith('55') ? raw : `55${raw}`) : null
+    if (!numero) return
+
+    const texto = encodeURIComponent(
+      `Olá! Me chamo ${formData.nome.trim()}.\n` +
+      `E-mail: ${formData.email.trim()}\n` +
+      `Assunto: ${formData.assunto}\n\n` +
+      formData.mensagem.trim()
+    )
+
+    window.open(`https://wa.me/${numero}?text=${texto}`, '_blank', 'noopener,noreferrer')
   }
 
   const fieldClass = (name) => `${inputBaseClass} ${formErrors[name] ? 'border-red-400' : 'border-gray-200'}`
@@ -159,76 +145,57 @@ const Contact = () => {
           <div className="bg-light p-8 md:p-12 rounded-3xl">
             <h3 className="text-3xl font-serif text-primary mb-8">Envie uma mensagem</h3>
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Nome Completo</label>
-                  <input
-                    type="text"
-                    name="nome"
-                    value={formData.nome}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    className={fieldClass('nome')}
-                    placeholder="Seu nome"
-                  />
-                  {formErrors.nome && (
-                    <p className="text-sm text-red-500">{formErrors.nome}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400">E-mail</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    className={fieldClass('email')}
-                    placeholder="seu@email.com"
-                  />
-                  {formErrors.email && (
-                    <p className="text-sm text-red-500">{formErrors.email}</p>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Nome Completo</label>
+                <input
+                  type="text"
+                  name="nome"
+                  value={formData.nome}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={fieldClass('nome')}
+                  placeholder="Seu nome"
+                />
+                {formErrors.nome && (
+                  <p className="text-sm text-red-500">{formErrors.nome}</p>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Telefone</label>
-                  <input
-                    type="tel"
-                    name="telefone"
-                    value={formData.telefone}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    inputMode="numeric"
-                    className={fieldClass('telefone')}
-                    placeholder="(00) 00000-0000"
-                  />
-                  {formErrors.telefone && (
-                    <p className="text-sm text-red-500">{formErrors.telefone}</p>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">E-mail</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={fieldClass('email')}
+                  placeholder="seu@email.com"
+                />
+                {formErrors.email && (
+                  <p className="text-sm text-red-500">{formErrors.email}</p>
+                )}
+              </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Assunto</label>
-                  <select
-                    name="assunto"
-                    value={formData.assunto}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    className={`${fieldClass('assunto')} appearance-none`}
-                  >
-                    <option>Comprar Imóvel</option>
-                    <option>Alugar Imóvel</option>
-                    <option>Anunciar Imóvel</option>
-                    <option>Outros Assuntos</option>
-                  </select>
-                  {formErrors.assunto && (
-                    <p className="text-sm text-red-500">{formErrors.assunto}</p>
-                  )}
-                </div>
+              {/* Telefone removido: o usuário já vai enviar via WhatsApp, não precisa digitar o número */}
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Assunto</label>
+                <select
+                  name="assunto"
+                  value={formData.assunto}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={`${fieldClass('assunto')} appearance-none`}
+                >
+                  <option>Comprar Imóvel</option>
+                  <option>Alugar Imóvel</option>
+                  <option>Anunciar Imóvel</option>
+                  <option>Outros Assuntos</option>
+                </select>
+                {formErrors.assunto && (
+                  <p className="text-sm text-red-500">{formErrors.assunto}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -247,9 +214,9 @@ const Contact = () => {
                 )}
               </div>
 
-              <button type="submit" disabled={carregando}
-                className="w-full bg-primary text-white font-bold py-5 rounded-xl hover:bg-secondary hover:text-primary transition-all shadow-xl shadow-primary/10 uppercase tracking-widest text-sm disabled:opacity-60">
-                {carregando ? 'Enviando...' : 'Enviar Mensagem'}
+              <button type="submit"
+                className="w-full bg-primary text-white font-bold py-5 rounded-xl hover:bg-secondary hover:text-primary transition-all shadow-xl shadow-primary/10 uppercase tracking-widest text-sm">
+                Enviar pelo WhatsApp
               </button>
             </form>
           </div>
