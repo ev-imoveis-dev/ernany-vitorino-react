@@ -33,6 +33,7 @@ credentials.json
 
 # OS files
 Thumbs.db
+.claude
 
 # Editor directories and files
 .vscode/*
