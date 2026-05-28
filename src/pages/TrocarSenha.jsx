@@ -46,8 +46,18 @@ export default function TrocarSenha() {
       return
     }
 
-    if (form.nova_senha.length < 6) {
-      setErro('A nova senha deve ter no mínimo 6 caracteres.')
+    if (form.nova_senha.length < 8) {
+      setErro('A nova senha deve ter no mínimo 8 caracteres.')
+      return
+    }
+
+    if (!/[A-Za-z]/.test(form.nova_senha)) {
+      setErro('A nova senha deve conter ao menos uma letra.')
+      return
+    }
+
+    if (!/\d/.test(form.nova_senha)) {
+      setErro('A nova senha deve conter ao menos um dígito.')
       return
     }
 
@@ -82,7 +92,7 @@ export default function TrocarSenha() {
 
   const campos = [
     { name: 'senha_atual',      label: 'Senha atual',           placeholder: 'Digite sua senha atual' },
-    { name: 'nova_senha',       label: 'Nova senha',            placeholder: 'Mínimo 6 caracteres' },
+    { name: 'nova_senha',       label: 'Nova senha',            placeholder: 'Mín. 8 chars, 1 letra + 1 dígito' },
     { name: 'confirmar_senha',  label: 'Confirmar nova senha',  placeholder: 'Repita a nova senha' },
   ]
 
