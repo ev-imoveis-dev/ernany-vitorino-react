@@ -8,7 +8,7 @@ import Slider from 'react-slick'
 import PropertyCard from '../components/PropertyCard'
 import { getImovelById, getImoveis } from '../services/imovelService'
 import { listarCorretores } from '../services/corretorService'
-import { getToken } from '../services/authService'
+import { getSessao } from '../services/authService'
 import { useConfig } from '../context/ConfigContext'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
 
@@ -126,7 +126,7 @@ export default function PropertyDetail() {
       setCorretores([])
     }
 
-    if (!getToken()) return
+    if (!getSessao()) return
 
     listarCorretores()
       .then(res => {

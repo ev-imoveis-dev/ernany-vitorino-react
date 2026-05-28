@@ -15,39 +15,32 @@ export async function trocarSenha(senha_atual, nova_senha) {
   return data
 }
 
-export function salvarSessao(token, usuario, trocar_senha) {
-  localStorage.setItem('token', token)
+/**
+ * Persiste informacoes nao-sensiveis do usuario para uso na UI (nome, papel).
+ * O token de autenticacao NAO e salvo em localStorage — vive em cookie HttpOnly
+ * setado pelo backend no login, inacessivel ao JS (protecao contra XSS).
+ */
+export function salvarSessao(usuario, trocar_senha) {
   localStorage.setItem('usuario', JSON.stringify(usuario))
   localStorage.setItem('trocar_senha', trocar_senha ? 'true' : 'false')
 }
 
+/**
+ * Retorna informacoes de UI da sessao. NAO valida o token — o backend e a fonte
+ * da verdade. Front usa isso so para gating de UI / labels. Qualquer 401 do back
+ * dispara encerrarSessao() via interceptor de api.js.
+ */
 export function getSessao() {
-  const token = localStorage.getItem('token')
   const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
   const trocarSenha = localStorage.getItem('trocar_senha') === 'true'
-  if (!token || !usuario) return null
-
-  // Verifica expiração do JWT sem biblioteca externa
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    if (payload.exp && Date.now() / 1000 > payload.exp) {
-      encerrarSessao()
-      return null
-    }
-  } catch {
-    encerrarSessao()
-    return null
-  }
-
-  return { token, usuario, trocar_senha: trocarSenha }
+  if (!usuario) return null
+  return { usuario, trocar_senha: trocarSenha }
 }
 
 export function encerrarSessao() {
-  localStorage.removeItem('token')
   localStorage.removeItem('usuario')
   localStorage.removeItem('trocar_senha')
-}
-
-export function getToken() {
-  return localStorage.getItem('token')
+  // Limpa cookie HttpOnly via backend. Best-effort — se rede falhar, cookie
+  // expira pelo maxAge (2h) ou pela proxima requisicao 401.
+  api.post('/auth/logout').catch(() => {})
 }

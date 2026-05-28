@@ -1,17 +1,14 @@
 import axios from 'axios'
-import { getToken, encerrarSessao } from './authService'
+import { encerrarSessao } from './authService'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3333/api',
+  // Envia o cookie HttpOnly de sessao automaticamente em cada request.
+  // Backend (CORS) precisa de credentials: true e origin allowlist.
+  withCredentials: true,
 })
 
-api.interceptors.request.use((config) => {
-  const token = getToken()
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
-
-const ROTAS_SEM_AUTO_LOGOUT = ['/auth/login', '/auth/trocar-senha', '/auth/esqueceu']
+const ROTAS_SEM_AUTO_LOGOUT = ['/auth/login', '/auth/trocar-senha', '/auth/esqueceu', '/auth/logout']
 
 api.interceptors.response.use(
   (response) => response,

@@ -24,19 +24,18 @@ const Login = () => {
     try {
       const data = await loginUsuario(formData)
 
-      // Extrai campos com fallback para diferentes formatos de backend
-      const token = data.token ?? data.accessToken ?? data.data?.token
+      // Token agora vive em cookie HttpOnly setado pelo backend.
+      // Frontend so persiste dados de UI (nome, papel) em localStorage.
       const usuario = data.usuario ?? data.user ?? data.data?.usuario
       const trocar_senha = data.trocar_senha ?? data.data?.trocar_senha ?? false
 
-      if (!token || !usuario) {
-        console.error('Resposta do backend sem token/usuario:', data)
-        throw new Error('Resposta do servidor inválida. Verifique o console (Network).')
+      if (!usuario) {
+        throw new Error('Resposta do servidor inválida.')
       }
 
       if (usuario.papel) usuario.papel = String(usuario.papel).toLowerCase()
 
-      salvarSessao(token, usuario, trocar_senha)
+      salvarSessao(usuario, trocar_senha)
 
       if (trocar_senha) {
         navigate('/trocar-senha')
@@ -51,7 +50,6 @@ const Login = () => {
         navigate('/') // fallback seguro
       }
     } catch (err) {
-      console.error('Erro no login:', err)
       setErro(err.response?.data?.erro || err.message || 'Erro ao fazer login. Tente novamente.')
     } finally {
       setCarregando(false)
