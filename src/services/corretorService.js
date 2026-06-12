@@ -32,7 +32,7 @@ export async function enviarNovaSenha(id) {
     const { data } = await api.post(`/admin/corretores/${id}/nova-senha`)
     return data
   } catch (err) {
-    throw new Error(err.response?.data?.erro || 'Erro ao enviar nova senha.')
+    throw new Error(err.response?.data?.erro || 'Erro ao enviar link de redefinicao.')
   }
 }
 

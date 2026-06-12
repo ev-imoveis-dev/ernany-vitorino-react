@@ -10,6 +10,11 @@ export async function esqueceuSenha(email) {
   return data
 }
 
+export async function redefinirSenha(token, nova_senha) {
+  const { data } = await api.post('/auth/redefinir-senha', { token, nova_senha })
+  return data
+}
+
 export async function trocarSenha(senha_atual, nova_senha) {
   const { data } = await api.post('/auth/trocar-senha', { senha_atual, nova_senha })
   return data

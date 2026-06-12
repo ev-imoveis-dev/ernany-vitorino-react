@@ -44,8 +44,6 @@ const CadastroCorretor = () => {
   return (
     <div className="pt-32 pb-24 bg-white min-h-screen">
       <div className="container mx-auto px-4">
-
-        {/* Header */}
         <div className="max-w-3xl mx-auto text-center mb-16">
           <span className="text-secondary font-bold uppercase tracking-widest text-sm mb-4 block">
             Painel Admin
@@ -54,14 +52,12 @@ const CadastroCorretor = () => {
             Cadastrar <br /> Corretor
           </h1>
           <p className="text-gray-500 text-lg">
-            Adicione um novo corretor. As credenciais serão enviadas por e-mail automaticamente.
+            Adicione um novo corretor. Um link para criar a senha sera enviado por e-mail automaticamente.
           </p>
         </div>
 
         <div className="max-w-md mx-auto">
           <div className="bg-light p-8 md:p-12 rounded-3xl">
-
-            {/* Estado: sucesso */}
             {corretorCadastrado ? (
               <div className="text-center space-y-6">
                 <div className="flex justify-center">
@@ -73,7 +69,7 @@ const CadastroCorretor = () => {
                     Corretor cadastrado!
                   </h3>
                   <p className="text-gray-500 text-sm">
-                    As credenciais foram enviadas por e-mail para{' '}
+                    O link para criar a senha foi enviado para{' '}
                     <span className="font-medium text-primary">{corretorCadastrado.email}</span>.
                   </p>
                 </div>
@@ -87,7 +83,6 @@ const CadastroCorretor = () => {
               </div>
             ) : (
               <>
-                {/* Formulário */}
                 <h3 className="text-3xl font-serif text-primary mb-8">Novo Corretor</h3>
 
                 {erro && (
@@ -100,7 +95,6 @@ const CadastroCorretor = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-widest text-gray-400">
                       Nome Completo
@@ -159,9 +153,9 @@ const CadastroCorretor = () => {
                   <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
                     <p className="font-medium mb-1">Como funciona:</p>
                     <ul className="text-xs space-y-1 list-disc list-inside">
-                      <li>Uma senha temporária será gerada</li>
-                      <li>A senha temporária será enviada no e-mail do corretor</li>
-                      <li>Ele deve alterar a senha no primeiro login obrigatóriamente</li>
+                      <li>Uma conta de corretor sera criada no sistema</li>
+                      <li>Um link para criar a senha sera enviado no e-mail do corretor</li>
+                      <li>O link expira em 15 minutos e pode ser usado apenas uma vez</li>
                     </ul>
                   </div>
 

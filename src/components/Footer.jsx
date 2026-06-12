@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Instagram, Facebook, Mail, MapPin, Phone } from 'lucide-react'
-import { useConfig } from '../context/ConfigContext'
+import { useConfig } from '../context/useConfig'
 
 const Footer = () => {
   const config = useConfig()

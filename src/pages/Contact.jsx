@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { MapPin, Phone, Mail, Instagram, Facebook, MessageCircle } from 'lucide-react'
-import { useConfig } from '../context/ConfigContext'
+import { useConfig } from '../context/useConfig'
 
 function validarFormularioContato(formData) {
   const errors = {}

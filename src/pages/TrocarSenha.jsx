@@ -1,11 +1,44 @@
-// src/pages/TrocarSenha.jsx
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
-import { trocarSenha, encerrarSessao, getSessao } from '../services/authService'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Lock, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react'
+import { trocarSenha, redefinirSenha, encerrarSessao, getSessao } from '../services/authService'
+
+function validarNovaSenha(form, exigirSenhaAtual) {
+  if (exigirSenhaAtual && !form.senha_atual) {
+    return 'Informe sua senha atual.'
+  }
+
+  if (form.nova_senha !== form.confirmar_senha) {
+    return 'A nova senha e a confirmacao nao coincidem.'
+  }
+
+  if (form.nova_senha.length < 8) {
+    return 'A nova senha deve ter no minimo 8 caracteres.'
+  }
+
+  if (!/[A-Za-z]/.test(form.nova_senha)) {
+    return 'A nova senha deve conter ao menos uma letra.'
+  }
+
+  if (!/\d/.test(form.nova_senha)) {
+    return 'A nova senha deve conter ao menos um digito.'
+  }
+
+  if (exigirSenhaAtual && form.nova_senha === form.senha_atual) {
+    return 'A nova senha nao pode ser igual a senha atual.'
+  }
+
+  return ''
+}
 
 export default function TrocarSenha() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get('token') || ''
+  const mode = searchParams.get('mode') || ''
+  const modoRecuperacao = token.length > 0
+  const modoCriacao = modoRecuperacao && mode === 'create'
+
   const [form, setForm] = useState({
     senha_atual: '',
     nova_senha: '',
@@ -23,10 +56,32 @@ export default function TrocarSenha() {
   const sessao = getSessao()
 
   useEffect(() => {
-    if (!getSessao()) {
+    if (!modoRecuperacao && !getSessao()) {
       navigate('/login')
     }
-  }, [navigate])
+  }, [modoRecuperacao, navigate])
+
+  const titulo = modoCriacao
+    ? 'Criar'
+    : modoRecuperacao
+      ? 'Redefinir'
+      : 'Trocar'
+  const subtitulo = modoCriacao
+    ? 'Defina sua senha para concluir o primeiro acesso da conta.'
+    : modoRecuperacao
+      ? 'Defina sua nova senha para concluir a recuperacao da conta.'
+    : 'Defina uma nova senha para sua conta.'
+  const saudacao = useMemo(() => {
+    if (modoCriacao) return 'Crie sua senha de acesso abaixo.'
+    if (modoRecuperacao) return 'Digite sua nova senha abaixo.'
+    return `Ola, ${sessao?.usuario?.nome || 'usuario'}. Defina sua nova senha abaixo.`
+  }, [modoCriacao, modoRecuperacao, sessao])
+  const tituloFormulario = modoCriacao ? 'Criar senha' : 'Nova senha'
+  const tituloSucesso = modoCriacao ? 'Senha criada!' : 'Senha atualizada!'
+  const textoSucesso = modoCriacao
+    ? 'Sua senha foi criada com sucesso. Faca login para acessar o painel.'
+    : 'Sua senha foi salva com sucesso. Faca login novamente para continuar.'
+  const textoBotao = modoCriacao ? 'Criar senha' : 'Salvar nova senha'
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -41,73 +96,63 @@ export default function TrocarSenha() {
     e.preventDefault()
     setErro('')
 
-    if (form.nova_senha !== form.confirmar_senha) {
-      setErro('A nova senha e a confirmação não coincidem.')
-      return
-    }
-
-    if (form.nova_senha.length < 8) {
-      setErro('A nova senha deve ter no mínimo 8 caracteres.')
-      return
-    }
-
-    if (!/[A-Za-z]/.test(form.nova_senha)) {
-      setErro('A nova senha deve conter ao menos uma letra.')
-      return
-    }
-
-    if (!/\d/.test(form.nova_senha)) {
-      setErro('A nova senha deve conter ao menos um dígito.')
-      return
-    }
-
-    if (form.nova_senha === form.senha_atual) {
-      setErro('A nova senha não pode ser igual à senha atual.')
+    const erroValidacao = validarNovaSenha(form, !modoRecuperacao)
+    if (erroValidacao) {
+      setErro(erroValidacao)
       return
     }
 
     setCarregando(true)
 
     try {
-      const senha_atual = form.senha_atual || undefined
-      await trocarSenha(senha_atual, form.nova_senha)
+      if (modoRecuperacao) {
+        await redefinirSenha(token, form.nova_senha)
+      } else {
+        await trocarSenha(form.senha_atual, form.nova_senha)
+        encerrarSessao()
+      }
 
-      encerrarSessao()
       setSucesso(true)
-
       setTimeout(() => {
         navigate('/login')
       }, 900)
     } catch (err) {
-      setErro(err?.response?.data?.erro || err?.message || 'Erro ao trocar senha. Tente novamente.')
+      setErro(err?.response?.data?.erro || err?.message || 'Erro ao salvar a nova senha. Tente novamente.')
     } finally {
       setCarregando(false)
     }
   }
 
   function handleIrParaLogin() {
-    encerrarSessao()
+    if (!modoRecuperacao) {
+      encerrarSessao()
+    }
     navigate('/login')
   }
 
-  const campos = [
-    { name: 'senha_atual',      label: 'Senha atual',           placeholder: 'Digite sua senha atual' },
-    { name: 'nova_senha',       label: 'Nova senha',            placeholder: 'Mín. 8 chars, 1 letra + 1 dígito' },
-    { name: 'confirmar_senha',  label: 'Confirmar nova senha',  placeholder: 'Repita a nova senha' },
-  ]
+  const campos = modoRecuperacao
+    ? [
+        { name: 'nova_senha', label: 'Nova senha', placeholder: 'Min. 8 chars, 1 letra + 1 digito' },
+        { name: 'confirmar_senha', label: 'Confirmar nova senha', placeholder: 'Repita a nova senha' },
+      ]
+    : [
+        { name: 'senha_atual', label: 'Senha atual', placeholder: 'Digite sua senha atual' },
+        { name: 'nova_senha', label: 'Nova senha', placeholder: 'Min. 8 chars, 1 letra + 1 digito' },
+        { name: 'confirmar_senha', label: 'Confirmar nova senha', placeholder: 'Repita a nova senha' },
+      ]
 
   return (
     <div className="pt-32 pb-24 bg-white min-h-screen">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <span className="text-secondary font-bold uppercase tracking-widest text-sm mb-4 block">
-            Área Restrita
+            Area Restrita
           </span>
           <h1 className="text-4xl md:text-6xl font-serif text-primary mb-6">
-            Trocar <br /> Senha
+            {titulo} <br /> Senha
           </h1>
           <p className="text-gray-500 text-lg">
-            Defina uma nova senha para sua conta.
+            {subtitulo}
           </p>
         </div>
 
@@ -119,10 +164,10 @@ export default function TrocarSenha() {
                   <CheckCircle size={64} className="text-green-500" />
                 </div>
                 <h3 className="text-2xl font-serif text-primary mb-3">
-                  Senha alterada!
+                  {tituloSucesso}
                 </h3>
                 <p className="text-gray-500 text-sm mb-8">
-                  Sua senha foi atualizada com sucesso. Faça login novamente com a nova senha.
+                  {textoSucesso}
                 </p>
                 <button
                   type="button"
@@ -134,12 +179,24 @@ export default function TrocarSenha() {
               </div>
             ) : (
               <>
-                <h3 className="text-3xl font-serif text-primary mb-2">
-                  Nova senha
-                </h3>
-                <p className="text-gray-400 text-sm mb-8">
-                  Olá, <strong>{sessao?.usuario?.nome}</strong>. Defina sua nova senha abaixo.
-                </p>
+                <div className="mb-8">
+                  {modoRecuperacao ? (
+                    <Link
+                      to="/login"
+                      className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors text-sm font-medium mb-6"
+                    >
+                      <ArrowLeft size={16} />
+                      Voltar para o login
+                    </Link>
+                  ) : null}
+
+                  <h3 className="text-3xl font-serif text-primary mb-2">
+                    {tituloFormulario}
+                  </h3>
+                  <p className="text-gray-400 text-sm">
+                    {saudacao}
+                  </p>
+                </div>
 
                 {erro && (
                   <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 mb-6 text-sm">
@@ -193,7 +250,7 @@ export default function TrocarSenha() {
                       </div>
                       <p className="text-xs text-gray-400">
                         {form.nova_senha.length < 4 && 'Senha fraca'}
-                        {form.nova_senha.length >= 4 && form.nova_senha.length < 8 && 'Senha razoável'}
+                        {form.nova_senha.length >= 4 && form.nova_senha.length < 8 && 'Senha razoavel'}
                         {form.nova_senha.length >= 8 && 'Senha forte'}
                       </p>
                     </div>
@@ -204,7 +261,7 @@ export default function TrocarSenha() {
                     disabled={carregando}
                     className="w-full bg-primary text-white font-bold py-5 rounded-xl hover:bg-secondary hover:text-primary transition-all shadow-xl shadow-primary/10 uppercase tracking-widest text-sm disabled:opacity-60"
                   >
-                    {carregando ? 'Salvando...' : 'Salvar nova senha'}
+                    {carregando ? 'Salvando...' : textoBotao}
                   </button>
                 </form>
               </>

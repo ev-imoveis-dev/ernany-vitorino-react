@@ -208,7 +208,7 @@ export default function AdminCorretores() {
     setEnviandoSenha(corretor.id)
     try {
       await enviarNovaSenha(corretor.id)
-      toast.success(`Nova senha enviada para ${corretor.email}`)
+      toast.success(`Link de redefinicao enviado para ${corretor.email}`)
     } catch (err) {
       toast.error(err.message)
     } finally {
@@ -335,14 +335,14 @@ export default function AdminCorretores() {
                     onClick={() => handleNovaSenha(corretor)}
                     disabled={enviandoSenha === corretor.id}
                     className="flex items-center gap-2 bg-primary text-white hover:bg-secondary hover:text-primary font-bold px-4 py-2.5 rounded-xl transition-all text-sm disabled:opacity-60"
-                    title="Enviar nova senha por e-mail"
+                    title="Enviar link de redefinicao por e-mail"
                   >
                     {enviandoSenha === corretor.id ? (
                       <span className="text-xs">Enviando...</span>
                     ) : (
                       <>
                         <KeyRound size={15} />
-                        <span className="hidden sm:inline">Nova senha</span>
+                        <span className="hidden sm:inline">Enviar link</span>
                       </>
                     )}
                   </button>

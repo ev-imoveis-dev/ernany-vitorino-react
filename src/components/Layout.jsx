@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { motion as Motion } from 'framer-motion'
 import Header from './Header'
 import Footer from './Footer'
 import WhatsAppButton from './WhatsAppButton'
-import { motion } from 'framer-motion'
 
 const ALTURA_HEADER = 80
 
@@ -29,14 +29,14 @@ const Layout = () => {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow">
-        <motion.div
+        <Motion.div
           key={location.pathname}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
           <Outlet />
-        </motion.div>
+        </Motion.div>
       </main>
       <Footer />
       <WhatsAppButton />

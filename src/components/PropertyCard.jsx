@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { BedDouble, Bath, Square, Car, ArrowRight, MapPin } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 import { cn } from '../utils/cn'
 
 const PropertyCard = ({ property }) => {
@@ -17,20 +17,18 @@ const PropertyCard = ({ property }) => {
     tamanho,
     vagas,
     localizacao,
-    referencia
+    referencia,
   } = property
 
-  // Usa a primeira imagem do array ou a imagem única (legado)
-  const fotoExibicao = Array.isArray(imagens) && imagens.length > 0 
-    ? imagens[0] 
+  const fotoExibicao = Array.isArray(imagens) && imagens.length > 0
+    ? imagens[0]
     : imagem
 
   return (
-    <motion.div
+    <Motion.div
       whileHover={{ y: -10 }}
       className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 group"
     >
-      {/* Imagem */}
       <Link to={`/imoveis/${id}`} className="block relative aspect-[4/3] overflow-hidden">
         {fotoExibicao ? (
           <img
@@ -45,18 +43,16 @@ const PropertyCard = ({ property }) => {
           </div>
         )}
 
-        {/* Badge tipo */}
         <div className="absolute top-4 left-4">
           <span className={cn(
-            "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-            tipo === 'venda' ? "bg-secondary text-primary" : "bg-primary text-white"
+            'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
+            tipo === 'venda' ? 'bg-secondary text-primary' : 'bg-primary text-white',
           )}>
             {tipo === 'venda' ? 'Venda' : 'Aluguel'}
           </span>
         </div>
       </Link>
 
-      {/* Conteúdo */}
       <div className="p-6">
         <div className="mb-4">
           <div className="flex items-start justify-between gap-2">
@@ -72,12 +68,11 @@ const PropertyCard = ({ property }) => {
           {localizacao && (
             <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
               <MapPin size={12} className="text-secondary shrink-0" />
-              {localizacao} 
+              {localizacao}
             </p>
           )}
         </div>
 
-        {/* Valor */}
         <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-100">
           <span className="text-2xl font-bold text-primary">
             {Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -87,7 +82,6 @@ const PropertyCard = ({ property }) => {
           )}
         </div>
 
-        {/* Detalhes */}
         <div className="grid grid-cols-4 gap-2 mb-6">
           <div className="flex flex-col items-center gap-1">
             <BedDouble size={18} className="text-secondary" />
@@ -123,7 +117,7 @@ const PropertyCard = ({ property }) => {
           <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
         </Link>
       </div>
-    </motion.div>
+    </Motion.div>
   )
 }
 

@@ -1,5 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  BedDouble,
+  Bath,
+  Square,
+  Car,
+  MapPin,
+  Home,
+  ArrowLeft,
+  X,
+  Image,
+} from "lucide-react";
 import { createImovel } from "../services/imovelService";
 import { getCorretores } from "../services/usuarioService";
 import { parseCurrencyInputBRL } from "../utils/currency";
@@ -8,63 +19,39 @@ import { useSessionRole } from "../hooks/useSessionRole";
 import { useImovelForm, camposIniciais } from "../hooks/useImovelForm";
 import { useAsyncStatus } from "../hooks/useAsyncStatus";
 
-import {
-  BedDouble,
-  Bath,
-  Square,
-  Car,
-  User,
-  MapPin,
-  Home,
-  ArrowLeft,
-  X,
-  Image,
-  LogOut,
-} from "lucide-react";
-
 export default function Admin() {
   const navigate = useNavigate();
   const { sessao, papel, usuarioId, prefixo } = useSessionRole();
-  const { form, setForm, handleChange, handleUpload, handleRemoveFoto } = useImovelForm(camposIniciais);
+  const formInicial = papel === "admin"
+    ? camposIniciais
+    : { ...camposIniciais, corretor: usuarioId };
+  const { form, setForm, handleChange, handleUpload, handleRemoveFoto } = useImovelForm(formInicial);
   const { enviando, sucesso, erro, iniciarEnvio, aoSucesso, aoErro, limparErro, reset } = useAsyncStatus();
 
   const [corretores, setCorretores] = useState([]);
-  const [corretorSelecionado, setCorretorSelecionado] = useState(papel === 'admin' ? '' : usuarioId);
+  const [corretorSelecionado, setCorretorSelecionado] = useState(papel === "admin" ? "" : usuarioId);
   const nomeUsuario = sessao?.usuario?.nome;
 
-
   useEffect(() => {
-    if (papel === "admin") {
-      getCorretores()
-        .then((lista) => {
-          const dados = Array.isArray(lista)
-            ? lista
-            : (lista?.dados ?? lista ?? []);
-          // Inclui corretores E admins (papel admin pode ser responsável por imóvel).
-          // Exclui o próprio usuário logado para não duplicar com a opção "atribuir a mim".
-          const elegiveis = dados.filter(
-            (u) => String(u.id) !== usuarioId,
-          );
-          setCorretores(elegiveis);
-        })
-        .catch((err) => {
-          console.error("Erro ao carregar usuários:", err);
-        });
-    } else {
-      setCorretorSelecionado(usuarioId);
-      setForm((prev) => ({ ...prev, corretor: usuarioId }));
-    }
-  }, [papel, usuarioId, setForm]);
+    if (papel !== "admin") return;
+
+    getCorretores()
+      .then((lista) => {
+        const dados = Array.isArray(lista)
+          ? lista
+          : (lista?.dados ?? lista ?? []);
+        const elegiveis = dados.filter((u) => String(u.id) !== usuarioId);
+        setCorretores(elegiveis);
+      })
+      .catch(() => {
+        aoErro("Erro ao carregar usuários.");
+      });
+  }, [aoErro, papel, usuarioId]);
 
   function handleLimpar() {
-    setForm(camposIniciais);
+    setForm(formInicial);
     reset();
-    if (papel === "admin") {
-      setCorretorSelecionado("");
-    } else {
-      setCorretorSelecionado(usuarioId);
-      setForm((prev) => ({ ...prev, corretor: usuarioId }));
-    }
+    setCorretorSelecionado(papel === "admin" ? "" : usuarioId);
   }
 
   async function handleSubmit(e) {
@@ -80,10 +67,8 @@ export default function Admin() {
         tamanho: form.tamanho ? Number(form.tamanho) : undefined,
         vagas: form.vagas ? Number(form.vagas) : undefined,
       };
-      // Sempre envia ID explícito (string). Nunca omite, nunca envia null/NaN.
-      // Admin sem seleção → próprio admin. Corretor → sempre ele mesmo.
       const extras = {
-        corretor: papel === 'corretor'
+        corretor: papel === "corretor"
           ? usuarioId
           : (corretorSelecionado?.trim() || usuarioId),
       };
@@ -143,7 +128,6 @@ export default function Admin() {
                 value={form.nome}
                 onChange={handleChange}
                 placeholder="Ex.: Apartamento no Centro"
-                
                 className="w-full bg-light p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
               />
             </div>
@@ -152,7 +136,6 @@ export default function Admin() {
               <label className="block text-sm font-bold text-gray-700 mb-2">
                 Fotos do imóvel (Máximo 20)
               </label>
-              
               <label className="block border-2 border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-secondary transition-colors mb-4">
                 <input
                   type="file"
@@ -201,7 +184,6 @@ export default function Admin() {
                   name="tipo_imovel"
                   value={form.tipo_imovel}
                   onChange={handleChange}
-                  
                   className="w-full bg-light p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
                 >
                   <option value="">Selecione</option>
@@ -220,7 +202,6 @@ export default function Admin() {
                   name="tipo"
                   value={form.tipo}
                   onChange={handleChange}
-                  
                   className="w-full bg-light p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
                 >
                   <option value="venda">Venda</option>
@@ -231,46 +212,24 @@ export default function Admin() {
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Valor (R$) *
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="valor"
-                    value={form.valor}
-                    onChange={handleChange}
-                    placeholder="Ex.: R$ 350.000"
-                    inputMode="numeric"
-                    className="w-full bg-light p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
-                  />
-                </div>
+                <input
+                  type="text"
+                  name="valor"
+                  value={form.valor}
+                  onChange={handleChange}
+                  placeholder="Ex.: R$ 350.000"
+                  inputMode="numeric"
+                  className="w-full bg-light p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                {
-                  label: "Quartos",
-                  name: "quartos",
-                  icon: BedDouble,
-                  placeholder: "Ex.: 3",
-                },
-                {
-                  label: "Banheiros",
-                  name: "banheiros",
-                  icon: Bath,
-                  placeholder: "Ex.: 2",
-                },
-                {
-                  label: "Tamanho (m²)",
-                  name: "tamanho",
-                  icon: Square,
-                  placeholder: "Ex.: 120",
-                },
-                {
-                  label: "Vagas",
-                  name: "vagas",
-                  icon: Car,
-                  placeholder: "Ex.: 1",
-                },
+                { label: "Quartos", name: "quartos", icon: BedDouble, placeholder: "Ex.: 3" },
+                { label: "Banheiros", name: "banheiros", icon: Bath, placeholder: "Ex.: 2" },
+                { label: "Tamanho (m²)", name: "tamanho", icon: Square, placeholder: "Ex.: 120" },
+                { label: "Vagas", name: "vagas", icon: Car, placeholder: "Ex.: 1" },
               ].map(({ label, name, icon: Icon, placeholder }) => (
                 <div key={name}>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -332,8 +291,8 @@ export default function Admin() {
                   <select
                     value={corretorSelecionado}
                     onChange={e => {
-                      setCorretorSelecionado(e.target.value)
-                      setForm(prev => ({ ...prev, corretor: e.target.value }))
+                      setCorretorSelecionado(e.target.value);
+                      setForm(prev => ({ ...prev, corretor: e.target.value }));
                     }}
                     className="w-full bg-light p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
                   >
@@ -346,7 +305,6 @@ export default function Admin() {
                   </select>
                 </div>
               )}
-
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">

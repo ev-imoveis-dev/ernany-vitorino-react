@@ -18,7 +18,7 @@ export default function EsqueceuSenha() {
       await esqueceuSenha(email)
       setEnviado(true)
     } catch (err) {
-      setErro(err.message || 'Erro ao solicitar recuperação. Tente novamente.')
+      setErro(err.message || 'Erro ao solicitar recuperacao. Tente novamente.')
     } finally {
       setCarregando(false)
     }
@@ -27,24 +27,20 @@ export default function EsqueceuSenha() {
   return (
     <div className="pt-32 pb-24 bg-white min-h-screen">
       <div className="container mx-auto px-4">
-
-        {/* Header */}
         <div className="max-w-3xl mx-auto text-center mb-16">
           <span className="text-secondary font-bold uppercase tracking-widest text-sm mb-4 block">
-            Área Restrita
+            Area Restrita
           </span>
           <h1 className="text-4xl md:text-6xl font-serif text-primary mb-6">
             Recuperar <br /> Senha
           </h1>
           <p className="text-gray-500 text-lg">
-            Informe seu e-mail e enviaremos uma senha temporária.
+            Informe seu e-mail e enviaremos um link unico para redefinir sua senha.
           </p>
         </div>
 
         <div className="max-w-md mx-auto">
           <div className="bg-light p-8 md:p-12 rounded-3xl">
-
-            {/* Voltar */}
             <Link
               to="/login"
               className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors text-sm font-medium mb-8"
@@ -62,7 +58,7 @@ export default function EsqueceuSenha() {
                   E-mail enviado!
                 </h3>
                 <p className="text-gray-500 text-sm mb-8">
-                  Se este e-mail estiver cadastrado, você receberá a senha temporária em instantes. Verifique também a caixa de spam.
+                  Se este e-mail estiver cadastrado, voce recebera um link de recuperacao em instantes. Verifique tambem a caixa de spam.
                 </p>
                 <Link
                   to="/login"
@@ -106,7 +102,7 @@ export default function EsqueceuSenha() {
                     disabled={carregando}
                     className="w-full bg-primary text-white font-bold py-5 rounded-xl hover:bg-secondary hover:text-primary transition-all shadow-xl shadow-primary/10 uppercase tracking-widest text-sm disabled:opacity-60"
                   >
-                    {carregando ? 'Gerando senha...' : 'Gerar senha temporária'}
+                    {carregando ? 'Enviando link...' : 'Enviar link de recuperacao'}
                   </button>
                 </form>
               </>

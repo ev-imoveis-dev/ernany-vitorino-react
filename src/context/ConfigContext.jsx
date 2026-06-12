@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import api from '../services/api'
-
-const ConfigContext = createContext(null)
+import { ConfigContext } from './ConfigContextValue'
 
 export function ConfigProvider({ children }) {
   const [config, setConfig] = useState(null)
@@ -13,8 +12,4 @@ export function ConfigProvider({ children }) {
   }, [])
 
   return <ConfigContext.Provider value={config}>{children}</ConfigContext.Provider>
-}
-
-export function useConfig() {
-  return useContext(ConfigContext)
 }

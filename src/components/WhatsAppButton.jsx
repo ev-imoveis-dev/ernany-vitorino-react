@@ -1,5 +1,5 @@
 import React from 'react'
-import { useConfig } from '../context/ConfigContext'
+import { useConfig } from '../context/useConfig'
 
 function formatarWhatsApp(tel) {
   if (!tel) return null
