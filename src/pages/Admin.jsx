@@ -11,6 +11,7 @@ import {
   X,
   Image,
 } from "lucide-react";
+import GaleriaUpload from "../components/GaleriaUpload";
 import { createImovel } from "../services/imovelService";
 import { getCorretores } from "../services/usuarioService";
 import { parseCurrencyInputBRL } from "../utils/currency";
@@ -25,7 +26,7 @@ export default function Admin() {
   const formInicial = papel === "admin"
     ? camposIniciais
     : { ...camposIniciais, corretor: usuarioId };
-  const { form, setForm, handleChange, handleUpload, handleRemoveFoto } = useImovelForm(formInicial);
+  const { form, setForm, handleChange, handleUpload, handleRemoveFoto, moverFoto } = useImovelForm(formInicial);
   const { enviando, sucesso, erro, iniciarEnvio, aoSucesso, aoErro, limparErro, reset } = useAsyncStatus();
 
   const [corretores, setCorretores] = useState([]);
@@ -135,6 +136,9 @@ export default function Admin() {
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
                 Fotos do imóvel (Máximo 20)
+                <span className="block font-normal text-xs text-gray-400 mt-1">
+                  A primeira foto é a capa do imóvel. Arraste as miniaturas ou use as setas para reordenar.
+                </span>
               </label>
               <label className="block border-2 border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-secondary transition-colors mb-4">
                 <input
@@ -151,27 +155,11 @@ export default function Admin() {
               </label>
 
               {form.imagens.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                  {form.imagens.map((foto, index) => (
-                    <div key={index} className="relative group aspect-square">
-                      <img
-                        src={foto.preview}
-                        alt={`Preview ${index + 1}`}
-                        className="w-full h-full object-cover rounded-xl border border-gray-100"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFoto(index)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"
-                      >
-                        <X size={14} />
-                      </button>
-                      <div className="absolute bottom-2 left-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full">
-                        {index + 1}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <GaleriaUpload
+                  imagens={form.imagens}
+                  onRemover={handleRemoveFoto}
+                  onMover={moverFoto}
+                />
               )}
             </div>
 

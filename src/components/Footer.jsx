@@ -17,7 +17,7 @@ const Footer = () => {
               ERNANY <span className="text-white font-light">VITORINO</span>
             </div>
             <p className="text-white/60 leading-relaxed">
-              Especialista em imóveis de alto padrão em Guarapari e região.
+              Imóveis selecionados em Guarapari e região.
               Sua jornada para o lar dos sonhos começa aqui.
             </p>
             <div className="flex gap-4">
