@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   BedDouble, Bath, Square, Car, MapPin,
-  ArrowLeft, CheckCircle2, Info, ChevronLeft, ChevronRight,
+  ArrowLeft, CheckCircle2, Info, ChevronLeft, ChevronRight, Share2,
 } from 'lucide-react'
 import Slider from 'react-slick'
+import toast from 'react-hot-toast'
 import PropertyCard from '../components/PropertyCard'
 import { getImovelById, getImoveis } from '../services/imovelService'
 import { useConfig } from '../context/useConfig'
@@ -40,6 +41,27 @@ function obterNomeCorretor(property) {
   }
 
   return property?.corretor_nome || property?.corretor || 'Corretor'
+}
+
+// Fallback para contexto nao-seguro, onde navigator.clipboard nao existe.
+function copiarLinkLegado(url) {
+  const campo = document.createElement('input')
+  campo.value = url
+  campo.setAttribute('readonly', '')
+  campo.style.position = 'fixed'
+  campo.style.opacity = '0'
+  document.body.appendChild(campo)
+  campo.select()
+
+  let copiou = false
+  try {
+    copiou = document.execCommand('copy')
+  } catch {
+    copiou = false
+  }
+
+  document.body.removeChild(campo)
+  return copiou
 }
 
 function validarFormularioContato(formData) {
@@ -134,6 +156,40 @@ function PropertyDetailContent({ propertyId }) {
     window.open(`https://api.whatsapp.com/send?phone=${numero}&text=${texto}`, '_blank', 'noopener,noreferrer')
   }
 
+  async function handleCompartilhar() {
+    const url = window.location.href
+    const nomeImovel = property?.nome || 'Imovel'
+    const valorFormatado = Number(property?.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: nomeImovel,
+          text: `${nomeImovel} — ${valorFormatado} | Ernany Vitorino Imóveis`,
+          url,
+        })
+        return
+      } catch (err) {
+        // Usuario fechou o menu nativo: nao e erro, nao mostra nada.
+        if (err?.name === 'AbortError') return
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Link copiado!')
+      return
+    } catch {
+      // Sem clipboard (contexto nao-seguro): tenta o fallback legado.
+    }
+
+    if (copiarLinkLegado(url)) {
+      toast.success('Link copiado!')
+    } else {
+      toast.error('Não foi possível copiar o link.')
+    }
+  }
+
   if (loading) {
     return <div className="pt-40 text-center text-gray-400 text-lg">Carregando...</div>
   }
@@ -167,7 +223,7 @@ function PropertyDetailContent({ propertyId }) {
 
   return (
     <div className="pt-20 bg-white">
-      <section className="relative h-[60vh] md:h-[80vh]">
+      <section className="relative h-[60vh] md:h-[80vh] bg-dark">
         {listaImagens.length > 0 ? (
           <>
             <SliderComponent ref={sliderRef} {...sliderSettings} className="h-full">
@@ -176,7 +232,7 @@ function PropertyDetailContent({ propertyId }) {
                   <img
                     src={foto}
                     alt={`${nome} - Foto ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover md:object-contain"
                   />
                 </div>
               ))}
@@ -222,6 +278,17 @@ function PropertyDetailContent({ propertyId }) {
             <ArrowLeft size={20} />
             VOLTAR
           </Link>
+        </div>
+
+        <div className="absolute top-8 right-8 z-10">
+          <button
+            type="button"
+            onClick={handleCompartilhar}
+            aria-label="Compartilhar imóvel"
+            className="bg-white/20 backdrop-blur-md text-white p-3 rounded-full hover:bg-white hover:text-primary transition-all flex items-center justify-center"
+          >
+            <Share2 size={20} />
+          </button>
         </div>
       </section>
 
@@ -274,7 +341,7 @@ function PropertyDetailContent({ propertyId }) {
                 <h3 className="text-2xl font-serif text-primary mb-6 border-b pb-4">
                   Descricao do Imovel
                 </h3>
-                <p className="text-gray-600 leading-relaxed text-lg">{descricao}</p>
+                <p className="text-gray-600 leading-relaxed text-lg whitespace-pre-wrap break-words">{descricao}</p>
               </div>
             )}
 

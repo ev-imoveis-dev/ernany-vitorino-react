@@ -47,5 +47,23 @@ export function useImovelForm(inicial = camposIniciais) {
     setForm(prev => ({ ...prev, imagens: prev.imagens.filter((_, i) => i !== index) }))
   }
 
-  return { form, setForm, handleChange, handleUpload, handleRemoveFoto }
+  // Reordena as fotos: a primeira da lista e a capa do imovel.
+  function moverFoto(origem, destino) {
+    setForm(prev => {
+      if (!prev || !Array.isArray(prev.imagens)) return prev
+
+      const total = prev.imagens.length
+      if (origem === destino) return prev
+      if (origem < 0 || origem >= total) return prev
+      if (destino < 0 || destino >= total) return prev
+
+      const imagens = [...prev.imagens]
+      const [movida] = imagens.splice(origem, 1)
+      imagens.splice(destino, 0, movida)
+
+      return { ...prev, imagens }
+    })
+  }
+
+  return { form, setForm, handleChange, handleUpload, handleRemoveFoto, moverFoto }
 }
