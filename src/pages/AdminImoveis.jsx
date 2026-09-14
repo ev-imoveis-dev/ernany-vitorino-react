@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { deleteImovel } from '../services/imovelService'
@@ -6,26 +6,41 @@ import { Pencil, Trash2, ArrowLeft, Home, ChevronLeft, ChevronRight } from 'luci
 import { useFetchImoveis } from '../hooks/useFetchImoveis'
 import { useSessionRole } from '../hooks/useSessionRole'
 
+const POR_PAGINA = 10
+
 export default function AdminImoveis() {
   const navigate = useNavigate()
   const { sessao, papel, prefixo } = useSessionRole()
   const [confirmando, setConfirmando] = useState(null)
   const [buscaRef, setBuscaRef] = useState('')
+  const [refBusca, setRefBusca] = useState('')
   const [pagina, setPagina] = useState(1)
-  const POR_PAGINA = 10
+
+  // A busca por referência vai para o servidor; só acompanha o input depois de ~400ms parado.
+  useEffect(() => {
+    const timer = setTimeout(() => setRefBusca(buscaRef), 400)
+    return () => clearTimeout(timer)
+  }, [buscaRef])
 
   const fetchParams = useMemo(
-    () => papel === 'corretor' ? { corretorId: sessao?.usuario?.id } : undefined,
-    [papel, sessao]
+    () => ({
+      ...(papel === 'corretor' ? { corretorId: sessao?.usuario?.id } : {}),
+      referencia: refBusca || undefined,
+      page: pagina,
+      limit: POR_PAGINA,
+    }),
+    [papel, sessao, refBusca, pagina]
   )
-  const { imoveis, setImoveis, loading, erro } = useFetchImoveis(fetchParams)
+  const { imoveis, total, totalPaginas, loading, erro, recarregar } = useFetchImoveis(fetchParams)
 
   async function handleExcluir(id) {
     try {
       await deleteImovel(id)
-      setImoveis(prev => prev.filter(item => item.id !== id))
       setConfirmando(null)
       toast.success('Imóvel removido com sucesso.')
+      // Era o último item da página: ela deixa de existir, então recua uma.
+      if (imoveis.length === 1 && pagina > 1) setPagina(pagina - 1)
+      recarregar()
     } catch (err) {
       toast.error(err?.message || 'Erro ao excluir imóvel.')
     }
@@ -92,26 +107,20 @@ export default function AdminImoveis() {
         </div>
 
         {imoveis.length === 0 ? (
-          <div className="bg-light p-20 rounded-2xl text-center">
-            <p className="text-gray-400 text-lg">Nenhum imóvel cadastrado ainda.</p>
-          </div>
-        ) : (() => {
-          const imoveisFiltrados = buscaRef
-            ? imoveis.filter(item => item.referencia?.toLowerCase().includes(buscaRef.toLowerCase()))
-            : imoveis
-          const totalPaginas = Math.ceil(imoveisFiltrados.length / POR_PAGINA)
-          const paginaAtual = Math.min(pagina, totalPaginas || 1)
-          const paginados = imoveisFiltrados.slice((paginaAtual - 1) * POR_PAGINA, paginaAtual * POR_PAGINA)
-
-          return imoveisFiltrados.length === 0 ? (
+          buscaRef ? (
             <div className="bg-light p-20 rounded-2xl text-center">
               <p className="text-gray-400 text-lg">Nenhum imóvel com referência "<strong>{buscaRef}</strong>".</p>
             </div>
           ) : (
+            <div className="bg-light p-20 rounded-2xl text-center">
+              <p className="text-gray-400 text-lg">Nenhum imóvel cadastrado ainda.</p>
+            </div>
+          )
+        ) : (
             <>
-            <p className="text-sm text-gray-400 mb-4">{imoveisFiltrados.length} imóvel{imoveisFiltrados.length !== 1 ? 'is' : ''} encontrado{imoveisFiltrados.length !== 1 ? 's' : ''}</p>
+            <p className="text-sm text-gray-400 mb-4">{total} imóvel{total !== 1 ? 'is' : ''} encontrado{total !== 1 ? 's' : ''}</p>
             <div className="space-y-4">
-              {paginados.map(item => (
+              {imoveis.map(item => (
                 (() => {
                   const fotoExibicao = Array.isArray(item.imagens) && item.imagens.length > 0
                     ? item.imagens[0]
@@ -194,7 +203,7 @@ export default function AdminImoveis() {
               <div className="flex items-center justify-center gap-2 mt-8">
                 <button
                   onClick={() => setPagina(p => Math.max(1, p - 1))}
-                  disabled={paginaAtual === 1}
+                  disabled={pagina === 1}
                   className="w-10 h-10 rounded-xl bg-light border border-gray-100 flex items-center justify-center hover:bg-primary hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft size={18} />
@@ -204,7 +213,7 @@ export default function AdminImoveis() {
                     key={num}
                     onClick={() => setPagina(num)}
                     className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
-                      paginaAtual === num
+                      pagina === num
                         ? 'bg-primary text-white shadow-lg shadow-primary/20'
                         : 'bg-light border border-gray-100 text-gray-500 hover:bg-primary hover:text-white'
                     }`}
@@ -214,7 +223,7 @@ export default function AdminImoveis() {
                 ))}
                 <button
                   onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
-                  disabled={paginaAtual === totalPaginas}
+                  disabled={pagina === totalPaginas}
                   className="w-10 h-10 rounded-xl bg-light border border-gray-100 flex items-center justify-center hover:bg-primary hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ChevronRight size={18} />
@@ -222,8 +231,7 @@ export default function AdminImoveis() {
               </div>
             )}
             </>
-          )
-        })()}
+        )}
       </div>
     </div>
   )
