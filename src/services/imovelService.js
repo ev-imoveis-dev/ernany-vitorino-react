@@ -9,6 +9,17 @@ export async function getImoveis(params = {}) {
   return data.dados
 }
 
+export async function getImoveisPaginado(params = {}) {
+  const { tipo, tipo_imovel, localizacao, quartos, referencia, ordem, corretorId, page, limit } = params
+  const { data } = await api.get('/imoveis', {
+    params: { tipo, tipo_imovel, localizacao, quartos, referencia, ordem, corretorId, page, limit },
+  })
+  if (!data || !Array.isArray(data.dados)) {
+    throw new Error('Resposta inesperada do servidor ao carregar imóveis.')
+  }
+  return data
+}
+
 export async function getImovelById(id) {
   const { data } = await api.get(`/imoveis/${id}`)
   return data
