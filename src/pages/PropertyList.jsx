@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect, useReducer } from 'react'
+import React, { useState, useEffect, useReducer } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Filter, X, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion as Motion, AnimatePresence } from 'framer-motion'
-import { getImoveis } from '../services/imovelService'
+import { getImoveisPaginado } from '../services/imovelService'
 import PropertyCard from '../components/PropertyCard'
 import { cn } from '../utils/cn'
 
@@ -117,7 +117,9 @@ export default function PropertyList() {
   const location = useLocation()
   const navigate = useNavigate()
   const [imoveis, setImoveis] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [total, setTotal] = useState(0)
+  const [totalPaginas, setTotalPaginas] = useState(0)
+  const [chaveCarregada, setChaveCarregada] = useState(null)
   const [erro, setErro] = useState(null)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
@@ -135,12 +137,55 @@ export default function PropertyList() {
     }
   })
 
+  // O campo de localização dispara uma requisição por tecla; o valor usado na
+  // busca só acompanha o input depois de ~400ms parado.
+  const [localizacaoBusca, setLocalizacaoBusca] = useState(filters.localizacao)
+
   useEffect(() => {
-    getImoveis()
-      .then(setImoveis)
-      .catch(() => setErro('Não foi possível carregar os imóveis.'))
-      .finally(() => setLoading(false))
-  }, [])
+    const timer = setTimeout(() => setLocalizacaoBusca(filters.localizacao), 400)
+    return () => clearTimeout(timer)
+  }, [filters.localizacao])
+
+  // Identifica a busca atual: enquanto a chave carregada for outra, a lista na
+  // tela ainda é a da busca anterior.
+  const chaveBusca = JSON.stringify([
+    filters.tipo, filters.tipo_imovel, localizacaoBusca, filters.quartos, filters.ordem, pagina,
+  ])
+  const loading = chaveCarregada === null
+  const carregandoPagina = chaveBusca !== chaveCarregada
+
+  useEffect(() => {
+    let cancelado = false
+    getImoveisPaginado({
+      tipo: filters.tipo !== FILTROS_INICIAIS.tipo ? filters.tipo : undefined,
+      tipo_imovel: filters.tipo_imovel !== FILTROS_INICIAIS.tipo_imovel ? filters.tipo_imovel : undefined,
+      localizacao: localizacaoBusca || undefined,
+      quartos: filters.quartos !== FILTROS_INICIAIS.quartos ? filters.quartos : undefined,
+      ordem: filters.ordem,
+      page: pagina,
+      limit: POR_PAGINA,
+    })
+      .then(resposta => {
+        if (cancelado) return
+        if (resposta.dados.length === 0 && pagina > 1) {
+          // Página fora do intervalo: volta para a primeira e deixa o efeito rodar de novo.
+          dispatch({ type: 'SET_PAGINA', pagina: 1 })
+          return
+        }
+        setImoveis(resposta.dados)
+        setTotal(resposta.total ?? 0)
+        setTotalPaginas(resposta.totalPaginas ?? 0)
+        setErro(null)
+        setChaveCarregada(chaveBusca)
+      })
+      .catch(() => {
+        if (cancelado) return
+        setErro('Não foi possível carregar os imóveis.')
+        setChaveCarregada(chaveBusca)
+      })
+    return () => { cancelado = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chaveBusca])
 
   useEffect(() => {
     const params = new URLSearchParams()
@@ -152,26 +197,6 @@ export default function PropertyList() {
     if (pagina > 1) params.set('pagina', pagina)
     navigate({ search: params.toString() }, { replace: true })
   }, [filters, pagina, navigate])
-
-  const filtrados = useMemo(() => (
-    imoveis
-      .filter(item => {
-        const matchTipo = filters.tipo === 'todos' || item.tipo === filters.tipo
-        const matchTipoImovel = filters.tipo_imovel === 'Todos' || item.tipo_imovel === filters.tipo_imovel
-        const matchLocal = filters.localizacao === '' || item.localizacao?.toLowerCase().includes(filters.localizacao.toLowerCase())
-        const matchQuartos = filters.quartos === 'Todos'
-          || (filters.quartos === '4+' ? item.quartos >= 4 : item.quartos === parseInt(filters.quartos, 10))
-        return matchTipo && matchTipoImovel && matchLocal && matchQuartos
-      })
-      .sort((a, b) => {
-        if (filters.ordem === 'menor_preco') return a.valor - b.valor
-        if (filters.ordem === 'maior_preco') return b.valor - a.valor
-        return b.id - a.id
-      })
-  ), [imoveis, filters])
-
-  const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA)
-  const paginados = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA)
 
   function handleFilter(name, value) {
     dispatch({ type: 'SET_FILTER', name, value })
@@ -203,7 +228,7 @@ export default function PropertyList() {
         <div className="mb-12 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-4xl md:text-5xl font-serif text-primary mb-2">Nossos Imóveis</h1>
-            <p className="text-gray-500">{filtrados.length} imóveis encontrados</p>
+            <p className="text-gray-500">{total} imóveis encontrados</p>
           </div>
           <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-xl shadow-sm border border-gray-100 self-start md:self-auto">
             <span className="text-sm text-gray-400 font-medium">ORDENAR POR:</span>
@@ -256,9 +281,12 @@ export default function PropertyList() {
           </aside>
 
           <div className="flex-1">
-            {paginados.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {paginados.map(item => (
+            {imoveis.length > 0 ? (
+              <div className={cn(
+                'grid grid-cols-1 md:grid-cols-2 gap-8 transition-opacity',
+                carregandoPagina && 'opacity-40',
+              )}>
+                {imoveis.map(item => (
                   <PropertyCard key={item.id} property={item} />
                 ))}
               </div>
@@ -342,7 +370,7 @@ export default function PropertyList() {
                 onClick={() => setIsFilterOpen(false)}
                 className="w-full bg-secondary text-primary font-bold py-5 rounded-xl shadow-xl shadow-secondary/20 mt-8"
               >
-                VER {filtrados.length} RESULTADOS
+                VER {total} RESULTADOS
               </button>
             </Motion.div>
           </>
