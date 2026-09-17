@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { BedDouble, Bath, Square, Car, ArrowRight, MapPin } from 'lucide-react'
 import { motion as Motion } from 'framer-motion'
 import { cn } from '../utils/cn'
+import { urlImagem } from '../utils/imagemUrl'
 
 const PropertyCard = ({ property }) => {
   const {
@@ -20,9 +21,10 @@ const PropertyCard = ({ property }) => {
     referencia,
   } = property
 
-  const fotoExibicao = Array.isArray(imagens) && imagens.length > 0
-    ? imagens[0]
-    : imagem
+  const fotoExibicao = urlImagem(
+    Array.isArray(imagens) && imagens.length > 0 ? imagens[0] : imagem,
+    'card',
+  )
 
   return (
     <Motion.div
