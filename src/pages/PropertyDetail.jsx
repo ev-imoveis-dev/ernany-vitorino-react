@@ -6,10 +6,17 @@ import {
 } from 'lucide-react'
 import Slider from 'react-slick'
 import toast from 'react-hot-toast'
+import Lightbox from 'yet-another-react-lightbox'
+import Zoom from 'yet-another-react-lightbox/plugins/zoom'
+import 'yet-another-react-lightbox/styles.css'
 import PropertyCard from '../components/PropertyCard'
 import { getImovelById, getImoveis } from '../services/imovelService'
 import { useConfig } from '../context/useConfig'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
+import { urlImagem } from '../utils/imagemUrl'
+
+// Distancia maxima (px) entre pointerdown e pointerup para contar como clique e nao arraste.
+const LIMITE_ARRASTE = 10
 
 function formatarWhatsApp(tel) {
   if (!tel) return null
@@ -77,11 +84,15 @@ const SliderComponent = Slider.default || Slider
 function PropertyDetailContent({ propertyId }) {
   const config = useConfig()
   const sliderRef = useRef(null)
+  const inicioPonteiroRef = useRef(null)
+  const arrastouRef = useRef(false)
   const [property, setProperty] = useState(null)
   const [similares, setSimilares] = useState([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState('')
   const [fotoAtual, setFotoAtual] = useState(0)
+  const [indiceAmpliado, setIndiceAmpliado] = useState(null)
+  const [ampliacaoCarregada, setAmpliacaoCarregada] = useState(false)
   const [formData, setFormData] = useState({ nome: '' })
   const [formErrors, setFormErrors] = useState({})
   const [whatsappError, setWhatsappError] = useState('')
@@ -118,7 +129,7 @@ function PropertyDetailContent({ propertyId }) {
     ? (property.descricao ? property.descricao.slice(0, 155) : `${property.tipo_imovel || 'Imovel'} em ${property.tipo} em ${property.localizacao || 'Guarapari/ES'}`)
     : null
   const metaImagem = property
-    ? (Array.isArray(property.imagens) && property.imagens.length > 0 ? property.imagens[0] : property.imagem)
+    ? urlImagem(Array.isArray(property.imagens) && property.imagens.length > 0 ? property.imagens[0] : property.imagem, 'og')
     : null
 
   useDocumentMeta({ title: metaTitulo, description: metaDescricao, imageUrl: metaImagem, url: window.location.href })
@@ -190,6 +201,38 @@ function PropertyDetailContent({ propertyId }) {
     }
   }
 
+  function abrirAmpliada(indice) {
+    sliderRef.current?.slickPause()
+    setAmpliacaoCarregada(true)
+    setIndiceAmpliado(indice)
+  }
+
+  function handlePointerDown(e) {
+    inicioPonteiroRef.current = { x: e.clientX, y: e.clientY }
+    arrastouRef.current = false
+  }
+
+  function handlePointerUp(e) {
+    const inicio = inicioPonteiroRef.current
+    if (!inicio) return
+    arrastouRef.current = Math.hypot(e.clientX - inicio.x, e.clientY - inicio.y) >= LIMITE_ARRASTE
+  }
+
+  // O react-slick dispara clique no fim de um swipe; so abre se o ponteiro quase nao andou.
+  function handleClickFoto(indice) {
+    const arrastou = arrastouRef.current
+    arrastouRef.current = false
+    inicioPonteiroRef.current = null
+    if (!arrastou) abrirAmpliada(indice)
+  }
+
+  function handleKeyDownFoto(e, indice) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      abrirAmpliada(indice)
+    }
+  }
+
   if (loading) {
     return <div className="pt-40 text-center text-gray-400 text-lg">Carregando...</div>
   }
@@ -217,6 +260,23 @@ function PropertyDetailContent({ propertyId }) {
     fade: true,
     afterChange: setFotoAtual,
   }
+  const temVariasFotos = listaImagens.length > 1
+  // A versao zoom so e montada depois do primeiro clique, para nao baixar tudo ao abrir a pagina.
+  const slidesAmpliados = ampliacaoCarregada
+    ? listaImagens.map(foto => ({ src: urlImagem(foto, 'zoom') }))
+    : []
+
+  function handleViewAmpliada({ index }) {
+    setIndiceAmpliado(index)
+    setFotoAtual(index)
+    sliderRef.current?.slickGoTo(index, true)
+  }
+
+  function fecharAmpliada() {
+    setIndiceAmpliado(null)
+    if (temVariasFotos) sliderRef.current?.slickPlay()
+  }
+
   const caracteristicasList = caracteristicas
     ? caracteristicas.split(',').map(c => c.trim()).filter(Boolean)
     : []
@@ -230,15 +290,34 @@ function PropertyDetailContent({ propertyId }) {
               {listaImagens.map((foto, index) => (
                 <div key={index} className="h-[60vh] md:h-[80vh] outline-none">
                   <img
-                    src={foto}
+                    src={urlImagem(foto, 'galeria')}
                     alt={`${nome} - Foto ${index + 1}`}
-                    className="w-full h-full object-cover md:object-contain"
+                    role="button"
+                    tabIndex={index === fotoAtual ? 0 : -1}
+                    onPointerDown={handlePointerDown}
+                    onPointerUp={handlePointerUp}
+                    onPointerCancel={() => { arrastouRef.current = true }}
+                    onClick={() => handleClickFoto(index)}
+                    onKeyDown={e => handleKeyDownFoto(e, index)}
+                    className="w-full h-full object-cover md:object-contain cursor-zoom-in"
                   />
                 </div>
               ))}
             </SliderComponent>
 
-            {listaImagens.length > 1 && (
+            <Lightbox
+              open={indiceAmpliado !== null}
+              close={fecharAmpliada}
+              index={indiceAmpliado ?? fotoAtual}
+              slides={slidesAmpliados}
+              plugins={[Zoom]}
+              zoom={{ scrollToZoom: true, maxZoomPixelRatio: 2 }}
+              carousel={{ finite: !temVariasFotos }}
+              render={temVariasFotos ? undefined : { buttonPrev: () => null, buttonNext: () => null }}
+              on={{ view: handleViewAmpliada }}
+            />
+
+            {temVariasFotos && (
               <>
                 <button
                   type="button"
