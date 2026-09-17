@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { urlImagem } from '../utils/imagemUrl'
 
 // Grade de miniaturas do formulario de imovel (cadastro e edicao).
 // A ordem da lista e a ordem publicada: a primeira foto e a capa.
@@ -44,7 +45,7 @@ export default function GaleriaUpload({ imagens, onRemover, onMover }) {
             } ${alvoDeSoltura ? 'ring-2 ring-secondary' : ''}`}
           >
             <img
-              src={foto.preview}
+              src={urlImagem(foto.preview, 'card')}
               alt={`Preview ${index + 1}`}
               draggable={false}
               className="w-full h-full object-cover rounded-xl border border-gray-100"
