@@ -20,8 +20,11 @@ import AdminCorretores from './pages/AdminCorretores'
 import CorretorDashboard from './pages/CorretorDashboard'
 import Localizacao from './pages/Localizacao'
 import PrivateRoute from './components/PrivateRoute'
+import { useWarmupApi } from './hooks/useWarmupApi'
 
 function App() {
+  useWarmupApi()
+
   return (
     <ConfigProvider>
       <Toaster
