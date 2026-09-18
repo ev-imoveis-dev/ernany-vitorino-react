@@ -13,6 +13,8 @@ import PropertyCard from '../components/PropertyCard'
 import { getImovelById, getImoveis } from '../services/imovelService'
 import { useConfig } from '../context/useConfig'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
+import { useEsperaLonga } from '../hooks/useEsperaLonga'
+import AvisoEsperaLonga from '../components/AvisoEsperaLonga'
 import { urlImagem } from '../utils/imagemUrl'
 
 // Distancia maxima (px) entre pointerdown e pointerup para contar como clique e nao arraste.
@@ -96,6 +98,7 @@ function PropertyDetailContent({ propertyId }) {
   const [formData, setFormData] = useState({ nome: '' })
   const [formErrors, setFormErrors] = useState({})
   const [whatsappError, setWhatsappError] = useState('')
+  const esperaLonga = useEsperaLonga(loading)
 
   useEffect(() => {
     let cancelled = false
@@ -234,7 +237,9 @@ function PropertyDetailContent({ propertyId }) {
   }
 
   if (loading) {
-    return <div className="pt-40 text-center text-gray-400 text-lg">Carregando...</div>
+    return esperaLonga
+      ? <div className="pt-40 flex justify-center"><AvisoEsperaLonga /></div>
+      : <div className="pt-40 text-center text-gray-400 text-lg">Carregando...</div>
   }
 
   if (erro || !property) {

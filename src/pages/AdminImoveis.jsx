@@ -5,6 +5,8 @@ import { deleteImovel } from '../services/imovelService'
 import { Pencil, Trash2, ArrowLeft, Home, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useFetchImoveis } from '../hooks/useFetchImoveis'
 import { useSessionRole } from '../hooks/useSessionRole'
+import { useEsperaLonga } from '../hooks/useEsperaLonga'
+import AvisoEsperaLonga from '../components/AvisoEsperaLonga'
 
 const POR_PAGINA = 10
 
@@ -32,6 +34,7 @@ export default function AdminImoveis() {
     [papel, sessao, refBusca, pagina]
   )
   const { imoveis, total, totalPaginas, loading, erro, recarregar } = useFetchImoveis(fetchParams)
+  const esperaLonga = useEsperaLonga(loading)
 
   async function handleExcluir(id) {
     try {
@@ -48,7 +51,9 @@ export default function AdminImoveis() {
 
   if (loading) return (
     <div className="pt-32 pb-24 bg-white min-h-screen flex items-center justify-center">
-      <p className="text-gray-400 text-lg">Carregando imóveis...</p>
+      {esperaLonga
+        ? <AvisoEsperaLonga />
+        : <p className="text-gray-400 text-lg">Carregando imóveis...</p>}
     </div>
   )
 
