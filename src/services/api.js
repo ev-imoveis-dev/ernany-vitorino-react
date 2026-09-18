@@ -1,8 +1,12 @@
 import axios from 'axios'
 import { encerrarSessao } from './authService'
 
+// URL base resolvida, exportada para quem precisa falar com a API sem passar
+// pela instancia do axios (o warm-up, por exemplo).
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api'
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3333/api',
+  baseURL: API_BASE_URL,
   // Envia o cookie HttpOnly de sessao automaticamente em cada request.
   // Backend (CORS) precisa de credentials: true e origin allowlist.
   withCredentials: true,

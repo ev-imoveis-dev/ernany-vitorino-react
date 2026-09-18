@@ -4,6 +4,8 @@ import { Filter, X, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-
 import { motion as Motion, AnimatePresence } from 'framer-motion'
 import { getImoveisPaginado } from '../services/imovelService'
 import PropertyCard from '../components/PropertyCard'
+import AvisoEsperaLonga from '../components/AvisoEsperaLonga'
+import { useEsperaLonga } from '../hooks/useEsperaLonga'
 import { cn } from '../utils/cn'
 
 const FILTROS_INICIAIS = {
@@ -153,6 +155,7 @@ export default function PropertyList() {
   ])
   const loading = chaveCarregada === null
   const carregandoPagina = chaveBusca !== chaveCarregada
+  const esperaLonga = useEsperaLonga(loading)
 
   useEffect(() => {
     let cancelado = false
@@ -209,7 +212,9 @@ export default function PropertyList() {
   if (loading) {
     return (
       <div className="pt-32 pb-24 bg-light min-h-screen flex items-center justify-center">
-        <p className="text-gray-400 text-lg">Carregando imóveis...</p>
+        {esperaLonga
+          ? <AvisoEsperaLonga />
+          : <p className="text-gray-400 text-lg">Carregando imóveis...</p>}
       </div>
     )
   }
