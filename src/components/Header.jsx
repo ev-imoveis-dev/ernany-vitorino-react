@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Menu, UserRound, X } from 'lucide-react'
 import { motion as Motion, AnimatePresence } from 'framer-motion'
 import { cn } from '../utils/cn'
+import { getSessao } from '../services/authService'
 
 const ALTURA_HEADER = 80
 
@@ -38,6 +39,15 @@ const Header = () => {
   }
 
   const isHomePage = location.pathname === '/'
+
+  // O Header fica montado o tempo todo (Layout), entao a sessao e lida a cada
+  // render — useLocation re-renderiza a cada mudanca de rota, e login e logout
+  // sempre terminam numa navegacao.
+  const papel = String(getSessao()?.usuario?.papel || '').toLowerCase()
+  const painel = papel === 'admin' ? '/admin' : papel === 'corretor' ? '/corretor' : null
+  const acessoPainel = painel
+    ? { path: painel, label: 'Meu painel' }
+    : { path: '/login', label: 'Área do corretor' }
 
   const navLinks = [
     { name: 'Início', path: '/', onClick: null },
@@ -100,6 +110,16 @@ const Header = () => {
               </Link>
             )
           ))}
+          <span aria-hidden="true" className="w-px h-4 bg-white/20" />
+          <Link
+            to={acessoPainel.path}
+            onClick={fecharMenu}
+            aria-label={acessoPainel.label}
+            title={acessoPainel.label}
+            className="text-white/50 hover:text-white transition-colors"
+          >
+            <UserRound size={18} />
+          </Link>
         </nav>
 
         <button className="lg:hidden text-white p-2" onClick={() => setIsOpen(!isOpen)}>
@@ -148,6 +168,15 @@ const Header = () => {
                 )
               ))}
             </nav>
+
+            <Link
+              to={acessoPainel.path}
+              onClick={fecharMenu}
+              className="mt-auto self-start flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors"
+            >
+              <UserRound size={16} />
+              {acessoPainel.label}
+            </Link>
           </Motion.div>
         )}
       </AnimatePresence>
