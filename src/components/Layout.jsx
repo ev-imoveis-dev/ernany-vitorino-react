@@ -13,13 +13,16 @@ const Layout = () => {
   useEffect(() => {
     if (location.hash) {
       const id = location.hash.substring(1)
-      setTimeout(() => {
+      // Espera a pagina nova renderizar; se a rota mudar antes, o timer morre
+      // e nao rola ate uma secao da navegacao anterior.
+      const timer = setTimeout(() => {
         const el = document.getElementById(id)
         if (el) {
           const pos = el.getBoundingClientRect().top + window.scrollY - ALTURA_HEADER
           window.scrollTo({ top: pos, behavior: 'smooth' })
         }
       }, 300)
+      return () => clearTimeout(timer)
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }

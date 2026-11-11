@@ -26,9 +26,14 @@ export default function AdminEditarImovel() {
   const [corretorSelecionado, setCorretorSelecionado] = useState('')
 
   useEffect(() => {
+    // Se o id mudar ou a pagina sair no meio do carregamento, a resposta
+    // atrasada nao sobrescreve o estado.
+    let cancelado = false
+
     const carregar = async () => {
       try {
         const data = await getImovelById(id)
+        if (cancelado) return
 
         // Backend retorna `corretor` = nome (JOIN) e `corretor_id` = ID.
         // Usar SEMPRE corretor_id para o select.
@@ -56,6 +61,7 @@ export default function AdminEditarImovel() {
 
         if (papel === 'admin') {
           const lista = await getCorretores()
+          if (cancelado) return
           setCorretores(lista)
           setCorretorSelecionado(corretorDoImovel || '')
         } else {
@@ -63,13 +69,16 @@ export default function AdminEditarImovel() {
           setForm(prev => ({ ...prev, corretor: usuarioId }))
         }
       } catch {
-        aoErro('Não foi possível carregar os dados do imóvel.')
+        if (!cancelado) aoErro('Não foi possível carregar os dados do imóvel.')
       } finally {
-        setLoading(false)
+        if (!cancelado) setLoading(false)
       }
     }
 
     carregar()
+    return () => {
+      cancelado = true
+    }
   }, [id, papel, usuarioId, setForm, aoErro])
 
   async function handleSubmit(e) {

@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { formatCurrencyInputBRL } from '../utils/currency'
-import { criarItemImagem } from '../utils/imovelFormData'
+import { criarItemImagem, revogarPreview } from '../utils/imovelFormData'
 
 export const camposIniciais = {
   nome: '',
@@ -23,6 +23,19 @@ export const camposIniciais = {
 export function useImovelForm(inicial = camposIniciais) {
   const [form, setForm] = useState(inicial)
 
+  // Espelha as imagens atuais para o cleanup do unmount revogar os previews
+  // que ainda estiverem na tela.
+  const imagensRef = useRef(form?.imagens)
+  useEffect(() => {
+    imagensRef.current = form?.imagens
+  }, [form])
+
+  useEffect(() => {
+    return () => {
+      imagensRef.current?.forEach(revogarPreview)
+    }
+  }, [])
+
   function handleChange(e) {
     const { name, value } = e.target
     setForm(prev => ({
@@ -44,7 +57,14 @@ export function useImovelForm(inicial = camposIniciais) {
   }
 
   function handleRemoveFoto(index) {
+    revogarPreview(form?.imagens?.[index])
     setForm(prev => ({ ...prev, imagens: prev.imagens.filter((_, i) => i !== index) }))
+  }
+
+  // Volta o formulario para `valor`, liberando os previews do estado anterior.
+  function limparForm(valor) {
+    form?.imagens?.forEach(revogarPreview)
+    setForm(valor)
   }
 
   // Reordena as fotos: a primeira da lista e a capa do imovel.
@@ -65,5 +85,5 @@ export function useImovelForm(inicial = camposIniciais) {
     })
   }
 
-  return { form, setForm, handleChange, handleUpload, handleRemoveFoto, moverFoto }
+  return { form, setForm, limparForm, handleChange, handleUpload, handleRemoveFoto, moverFoto }
 }

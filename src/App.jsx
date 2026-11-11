@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { MotionConfig } from 'framer-motion'
 import { ConfigProvider } from './context/ConfigContext'
 import Layout from './components/Layout'
 import Home from './pages/Home'
@@ -26,6 +27,7 @@ function App() {
   useWarmupApi()
 
   return (
+    <MotionConfig reducedMotion="user">
     <ConfigProvider>
       <Toaster
         position="top-right"
@@ -71,6 +73,7 @@ function App() {
       </Routes>
     </Router>
     </ConfigProvider>
+    </MotionConfig>
   )
 }
 
