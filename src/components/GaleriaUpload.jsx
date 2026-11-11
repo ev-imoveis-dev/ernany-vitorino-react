@@ -34,7 +34,7 @@ export default function GaleriaUpload({ imagens, onRemover, onMover }) {
 
         return (
           <div
-            key={index}
+            key={foto.preview}
             draggable
             onDragStart={() => setArrastando(index)}
             onDragOver={e => handleDragOver(e, index)}

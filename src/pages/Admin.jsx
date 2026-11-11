@@ -26,7 +26,7 @@ export default function Admin() {
   const formInicial = papel === "admin"
     ? camposIniciais
     : { ...camposIniciais, corretor: usuarioId };
-  const { form, setForm, handleChange, handleUpload, handleRemoveFoto, moverFoto } = useImovelForm(formInicial);
+  const { form, setForm, limparForm, handleChange, handleUpload, handleRemoveFoto, moverFoto } = useImovelForm(formInicial);
   const { enviando, sucesso, erro, iniciarEnvio, aoSucesso, aoErro, limparErro, reset } = useAsyncStatus();
 
   const [corretores, setCorretores] = useState([]);
@@ -50,7 +50,7 @@ export default function Admin() {
   }, [aoErro, papel, usuarioId]);
 
   function handleLimpar() {
-    setForm(formInicial);
+    limparForm(formInicial);
     reset();
     setCorretorSelecionado(papel === "admin" ? "" : usuarioId);
   }
