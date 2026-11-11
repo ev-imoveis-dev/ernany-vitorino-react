@@ -5,6 +5,15 @@ export function criarItemImagem(file) {
   }
 }
 
+// So previews criados por criarItemImagem (blob:) sao revogados; URLs de
+// imagens ja salvas no servidor passam intactas.
+export function revogarPreview(item) {
+  const preview = item?.preview
+  if (typeof preview === 'string' && preview.startsWith('blob:')) {
+    URL.revokeObjectURL(preview)
+  }
+}
+
 export function criarItemImagemExistente(url) {
   return {
     url,

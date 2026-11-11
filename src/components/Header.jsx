@@ -32,8 +32,9 @@ const Header = () => {
     if (location.pathname === '/') {
       scrollParaSecao('sobre')
     } else {
-      navigate('/')
-      setTimeout(() => scrollParaSecao('sobre'), 300)
+      // O Layout ja rola ate o hash depois da troca de rota (com cleanup do
+      // timer), entao basta navegar com a ancora.
+      navigate('/#sobre')
     }
     setIsOpen(false)
   }
